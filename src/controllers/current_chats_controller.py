@@ -1,12 +1,14 @@
 from flask import Blueprint, jsonify, request
 from sqlalchemy.engine import characteristics
 from service.get_chat import get_current_chats
+from decorators.auth import preauth
 
 
 current_chats_bp = Blueprint("current_chats_controller", __name__)
 
 
 @current_chats_bp.route("/get_current", methods=["GET"])
+@preauth
 def current_chats_controller():
     response = None
     try:

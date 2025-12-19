@@ -33,7 +33,7 @@ def create_app():
     def start_background_job():
         # <-- context created INSIDE the thread
         with app.app_context():
-            query_scores()
+            query_scores(app)
 
     # start thread AFTER everything is set up
     thread = threading.Thread(target=start_background_job, daemon=True)
@@ -43,5 +43,5 @@ def create_app():
 if __name__ == "__main__":
     app= create_app()
 
-    app.run(debug=True,host="0.0.0.0", port=5050)
+    app.run(debug=False,host="0.0.0.0", port=5050)
     

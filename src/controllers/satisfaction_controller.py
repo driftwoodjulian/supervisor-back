@@ -5,8 +5,8 @@ from service.get_messages import get_messages
 from flask import Blueprint, jsonify, request
 from service.harmony_convertion import convert_to_harmony
 from service.get_chat import get_current_chats
-
 import requests
+from decorators.auth import preauth
 
 
 api_endpoint ="http://10.10.1.8:5040/ai/ai"
@@ -26,10 +26,14 @@ def set_satisfaction(chat_id):
     data=convert_to_harmony(full_chat=info)
 
     #send data to ai
+    print("sending data to ai")
+    print(data)
     ai_response = requests.post(api_endpoint, json=data)
 
     #return serializable response content
     try:
+        print("got a response from ai")
+        print(ai_response.json())
         return ai_response.json()
     except Exception as e:
         print(e)
@@ -39,6 +43,7 @@ def set_satisfaction(chat_id):
 
 #turn in to a socket
 @satisfaction_bp.route("/satisfaction", methods=["GET"])
+@preauth
 def satisfaction_controller():
     response = None
     scores = []

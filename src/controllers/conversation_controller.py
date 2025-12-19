@@ -3,6 +3,7 @@ from flask import Blueprint, jsonify, request
 from sqlalchemy import null
 from service.get_chat import get_chat
 from service.get_messages import get_messages
+from decorators.auth import preauth
 
 
 conversation_bp = Blueprint("conversation_controller", __name__)
@@ -55,6 +56,7 @@ def convert_to_harmony(full_chat, rating="unrated"):
 
 
 @conversation_bp.route("conversation/<int:chat_id>", methods=["GET"])
+@preauth
 def conversation_controller(chat_id):
     messages = get_messages(chat_id)
     chat = get_chat(chat_id)
