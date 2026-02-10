@@ -1,0 +1,61 @@
+Master Prompt: AI Layer Refactor & Lifecycle Management
+
+Role: Senior Backend Architect / AI Infrastructure Engineer Context: Refactor the AI layer on a remote server managing GPTOSS (vLLM) and Gemma 2 (Ollama).
+Target: AI-Layer Refactor (Remote Server) Environment: GPTOSS (via vLLM) and Gemma 2 (via Ollama)
+1. State Control & Request Gating
+
+    The Problem: The backend currently accepts requests on boot before an AI is ready.
+
+    The Fix: * In the entry point of the AI layer (e.g., app.py or server.js), implement a global variable CURRENT_AI_STATE = "IDLE".
+
+        Wrap the inference route. If CURRENT_AI_STATE == "IDLE", return a 428 Precondition Required error.
+
+        Do not allow the backend to auto-select a model. It must wait for the frontend toggle signal.
+
+2. Process Management (The "Anti-Duplicate" Logic)
+
+    The Problem: Toggling creates duplicate processes because the previous AI isn't killed.
+
+    The Fix:
+
+        Implement a cleanup_active_processes() function.
+
+        Before starting vllm or ollama, this function must identify existing PIDs using these tools and issue a SIGKILL.
+
+        Crucial: You must check for port availability (e.g., port 8000 for vLLM, 11434 for Ollama). If the port is busy, the script must wait and retry the cleanup until the port is free before starting the new model.
+
+3. Timeout & Boot Persistence
+
+    The Problem: 2-minute timeouts for a 30-40 minute boot process.
+
+    The Fix:
+
+        Locate all timeout constants in the AI layer files. Change them from 120s to 2700s (45 minutes).
+
+        Ensure the connection between the Backend and the AI Layer doesn't drop during this window. Use a long-polling or status-check mechanism so the UI knows the model is "Loading" and hasn't crashed.
+
+4. Dual-Stream Logging (Terminal + File)
+
+    The Problem: We lose visibility on remote server boot-up.
+
+    The Fix:
+
+        Redirect stdout and stderr for both vLLM and Ollama processes.
+
+        Implement a logger that uses a Tee approach:
+
+            Terminal: Print live logs for real-time monitoring.
+
+            File: Append logs to /var/log/ai_layer_activity.log (or project equivalent).
+
+        Each log line must include: [TIMESTAMP] [MODEL_NAME] [PID] [MESSAGE].
+
+5. Simulation Requirements
+
+Before finalizing, you must simulate these three specific failures:
+
+    The "Zombies": Start vLLM, then trigger a switch to Gemma 2. Verify via ps aux that vLLM is dead and only Gemma 2 is consuming VRAM.
+
+    The "Patience Test": Simulate a boot that takes 35 minutes. Verify that no "Gateway Timeout" or internal timeout is triggered.
+
+    The "Empty Request": Send a prompt before the toggle is hit. Verify the system returns an error instead of hanging.

@@ -1,0 +1,269 @@
+{
+  "chat_and_customer_info": {
+    "chat_duration": "0:47:37.128333",
+    "chat_id": 7,
+    "closed_at": "Tue, 16 Sep 2025 09:04:14 GMT",
+    "created_at": "Tue, 16 Sep 2025 08:16:37 GMT",
+    "custumer_metadata": {
+      "SSL": null,
+      "abuso": null,
+      "area": "soporte",
+      "dominio": "sicemendoza.com.ar",
+      "email": "diegomarchisio@sicemendoza.com.ar",
+      "email_autorizado": "gonzaloromero@sicemendoza.com.ar",
+      "estado": "Activo",
+      "name": "Gonzalo Javier Romero",
+      "plan": "Cp Corporativo - Linux",
+      "proximo_pago": "2025-09-21",
+      "servidor": "cva1.toservers.com",
+      "titular": "Gonzalo Javier Romero",
+      "usuario": "gonzalor"
+    },
+    "displayname": "sicemendoza.com.ar"
+  },
+  "conversation": [
+    {
+      "author": {
+        "id": "f1ad3e0b-fab6-4a09-a3fb-e81a8bbc1ebb",
+        "pushName": "Daniel Serra"
+      },
+      "chatId": 7,
+      "createdAt": "2025-09-16T08:17:12.135217",
+      "id": "d603d588-e0f5-42bf-b26e-9496b9fd763f",
+      "role": "support operator",
+      "text": "Hola, buenos d\u00edas."
+    },
+    {
+      "author": {
+        "id": "f1ad3e0b-fab6-4a09-a3fb-e81a8bbc1ebb",
+        "pushName": "Daniel Serra"
+      },
+      "chatId": 7,
+      "createdAt": "2025-09-16T08:17:16.294844",
+      "id": "c3791222-d3bf-4fd0-8826-97117bd32b97",
+      "role": "support operator",
+      "text": "Bienvenido a ToWebs, \u00bfen qu\u00e9 lo puedo ayudar?"
+    },
+    {
+      "author": "sicemendoza.com.ar",
+      "chatId": 7,
+      "createdAt": "2025-09-16T08:17:58.172855",
+      "id": "ca5fa695-5b97-41eb-90de-de68bfb641ad",
+      "role": "customer",
+      "text": "hola buenos dias"
+    },
+    {
+      "author": "sicemendoza.com.ar",
+      "chatId": 7,
+      "createdAt": "2025-09-16T08:18:02.511980",
+      "id": "8e028d23-ec82-4291-b32b-6be211fdf68b",
+      "role": "customer",
+      "text": "No podemos enviar mail"
+    },
+    {
+      "author": "sicemendoza.com.ar",
+      "chatId": 7,
+      "createdAt": "2025-09-16T08:18:07.013714",
+      "id": "8e94dc53-df27-4829-a45b-2516dd31137a",
+      "role": "customer",
+      "text": "si recibimos"
+    },
+    {
+      "author": {
+        "id": "f1ad3e0b-fab6-4a09-a3fb-e81a8bbc1ebb",
+        "pushName": "Daniel Serra"
+      },
+      "chatId": 7,
+      "createdAt": "2025-09-16T08:18:21.971548",
+      "id": "5c0782c9-61cc-4caa-aa9f-8f9b5b373095",
+      "role": "support operator",
+      "text": "Le pido los datos de acceso al cPanel, por favor. Usuario y clave."
+    },
+    {
+      "author": "sicemendoza.com.ar",
+      "chatId": 7,
+      "createdAt": "2025-09-16T08:23:26.165613",
+      "id": "1f641fb4-4636-475d-9b63-cb6c9a2cfb9d",
+      "role": "customer",
+      "text": "Dominio:\tsicemendoza.com.ar\nPanel de control:\tsicemendoza.com.ar/cpanel/\nLogin:\tgonzalor\nClave:\tKdxRBJP7me\nServidor POP:\tmail.sicemendoza.com.ar\nServidor SMTP:\tmail.sicemendoza.com.ar\nServidor FTP:\tftp.sicemendoza.com.ar\n\nIP:\t200.80.43.50"
+    },
+    {
+      "author": "sicemendoza.com.ar",
+      "chatId": 7,
+      "createdAt": "2025-09-16T08:23:31.930344",
+      "id": "4356d088-397e-43e3-9298-81cbf533a9e9",
+      "role": "customer",
+      "text": "esos son"
+    },
+    {
+      "author": {
+        "id": "f1ad3e0b-fab6-4a09-a3fb-e81a8bbc1ebb",
+        "pushName": "Daniel Serra"
+      },
+      "chatId": 7,
+      "createdAt": "2025-09-16T08:24:10.208227",
+      "id": "ed44bf5c-1f2f-4fad-923a-95d5aade5bf6",
+      "role": "support operator",
+      "text": "Aguarde un momento, por favor."
+    },
+    {
+      "author": {
+        "id": "48f56b30-a3a0-46c6-a52c-73d2faf20b19",
+        "pushName": "Supervisor"
+      },
+      "chatId": 7,
+      "createdAt": "2025-09-16T08:26:29.220840",
+      "id": "9f69edf0-8bce-4df6-8a09-c8b9dc133b7b",
+      "role": "support operator",
+      "text": "uy no se nada jajaj cuando pueda corrijo los colores"
+    },
+    {
+      "author": {
+        "id": "48f56b30-a3a0-46c6-a52c-73d2faf20b19",
+        "pushName": "Supervisor"
+      },
+      "chatId": 7,
+      "createdAt": "2025-09-16T08:26:46.822066",
+      "id": "cada91f8-74da-49ec-8de4-21a8774d1bdb",
+      "role": "support operator",
+      "text": "no se ve nada*"
+    },
+    {
+      "author": "sicemendoza.com.ar",
+      "chatId": 7,
+      "createdAt": "2025-09-16T08:29:29.587645",
+      "id": "66e3704f-5c35-43a0-b8e5-0e9399cd847a",
+      "role": "customer",
+      "text": "donde no se ve?"
+    },
+    {
+      "author": "sicemendoza.com.ar",
+      "chatId": 7,
+      "createdAt": "2025-09-16T08:29:32.363277",
+      "id": "215e1af9-c5e8-4e82-9b7e-f6840fe54ad8",
+      "role": "customer",
+      "text": "no entiendo"
+    },
+    {
+      "author": {
+        "id": "f1ad3e0b-fab6-4a09-a3fb-e81a8bbc1ebb",
+        "pushName": "Daniel Serra"
+      },
+      "chatId": 7,
+      "createdAt": "2025-09-16T08:30:19.058942",
+      "id": "49ab4b97-27f8-4195-bb2f-56d5d9904fa5",
+      "role": "support operator",
+      "text": "omita ese mensaje estimado, era el supervisor hablando conmigo con respecto a la interfaz que vemos nosotros"
+    },
+    {
+      "author": {
+        "id": "f1ad3e0b-fab6-4a09-a3fb-e81a8bbc1ebb",
+        "pushName": "Daniel Serra"
+      },
+      "chatId": 7,
+      "createdAt": "2025-09-16T08:37:33.591982",
+      "id": "0ff173a5-821f-4e82-88c2-e81a580235d9",
+      "role": "support operator",
+      "text": "disculpe la demora ya estoy con usted nuevamente"
+    },
+    {
+      "author": {
+        "id": "f1ad3e0b-fab6-4a09-a3fb-e81a8bbc1ebb",
+        "pushName": "Daniel Serra"
+      },
+      "chatId": 7,
+      "createdAt": "2025-09-16T08:37:59.613378",
+      "id": "4b7a127e-974b-4952-be1a-0d9fb3a273f8",
+      "role": "support operator",
+      "text": "podria decirme si es en alguna casilla en particular que esta teniendo este inconveniente o si es con todas?"
+    },
+    {
+      "author": "sicemendoza.com.ar",
+      "chatId": 7,
+      "createdAt": "2025-09-16T08:43:14.148788",
+      "id": "52d5d1d9-c657-4a2e-86c3-f2ff965f4099",
+      "role": "customer",
+      "text": "EN TODAS"
+    },
+    {
+      "author": "sicemendoza.com.ar",
+      "chatId": 7,
+      "createdAt": "2025-09-16T08:43:20.287857",
+      "id": "5ed417c4-a44e-40c5-b045-7df9fc8ada2b",
+      "role": "customer",
+      "text": "yo en la mia"
+    },
+    {
+      "author": "sicemendoza.com.ar",
+      "chatId": 7,
+      "createdAt": "2025-09-16T08:43:27.034842",
+      "id": "38376f75-7a70-49da-a6bc-b457855beea3",
+      "role": "customer",
+      "text": "no puedo enviar"
+    },
+    {
+      "author": "sicemendoza.com.ar",
+      "chatId": 7,
+      "createdAt": "2025-09-16T08:43:55.755133",
+      "id": "5b8880a8-4d1b-4897-87b4-1964ff840cad",
+      "role": "customer",
+      "text": "diegomarchisio@sicemendoza.com.ar"
+    },
+    {
+      "author": {
+        "id": "f1ad3e0b-fab6-4a09-a3fb-e81a8bbc1ebb",
+        "pushName": "Daniel Serra"
+      },
+      "chatId": 7,
+      "createdAt": "2025-09-16T08:43:59.796895",
+      "id": "2902093d-0ca6-436b-ae07-906b3b300e64",
+      "role": "support operator",
+      "text": "Bien aguarde un momento por favor"
+    },
+    {
+      "author": {
+        "id": "f1ad3e0b-fab6-4a09-a3fb-e81a8bbc1ebb",
+        "pushName": "Daniel Serra"
+      },
+      "chatId": 7,
+      "createdAt": "2025-09-16T08:48:25.796003",
+      "id": "8ff17e7b-f25a-437e-b8fd-60930fbea7eb",
+      "role": "support operator",
+      "text": "Disculpe la demora estimado, por lo que estoy viendo es un problema a nivel general y ya mismo est\u00e1 siendo solucionado, en el transcurso de la pr\u00f3xima hora estar\u00e1 funcionando con normalidad. Le pedimos disculpas por los inconvenientes ocasionados. \u00bfDesea realizar alguna otra consulta?"
+    },
+    {
+      "author": {
+        "id": "f1ad3e0b-fab6-4a09-a3fb-e81a8bbc1ebb",
+        "pushName": "Daniel Serra"
+      },
+      "chatId": 7,
+      "createdAt": "2025-09-16T08:55:26.869904",
+      "id": "6a0e6909-7281-4ee3-98ff-6b040c6c59d7",
+      "role": "support operator",
+      "text": "\u00bfSe encuentra on-line?"
+    },
+    {
+      "author": {
+        "id": "f1ad3e0b-fab6-4a09-a3fb-e81a8bbc1ebb",
+        "pushName": "Daniel Serra"
+      },
+      "chatId": 7,
+      "createdAt": "2025-09-16T09:04:06.132739",
+      "id": "1b647b6b-05f8-42e4-9e5d-3f1f53a15355",
+      "role": "support operator",
+      "text": "Parece que el chat se cort\u00f3. Si su consulta no fue resuelta le pido que se comunique nuevamente con nosotros."
+    },
+    {
+      "author": {
+        "id": "f1ad3e0b-fab6-4a09-a3fb-e81a8bbc1ebb",
+        "pushName": "Daniel Serra"
+      },
+      "chatId": 7,
+      "createdAt": "2025-09-16T09:04:09.098457",
+      "id": "c0e93a29-3ffc-4ef5-bb0e-9855a3573842",
+      "role": "support operator",
+      "text": "Hasta luego, gracias por visitar ToWebs."
+    }
+  ]
+}
+

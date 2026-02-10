@@ -1,0 +1,71 @@
+I need a vite proyect, that doesnt use typescript or next.js, just react, no tailwindo just plain css or bootstrap, also a .evn file where to put all api endpointsfreatures: 1: login when you call the app it should first check if you have a jwt stored for the app, if so it will send it to 10.10.1.180:5000/auth/check with it as a bearer in a GET request, the app will return a json like this{ "role": "user", "status": "valid", "username": "testuser"}with a 200 status if the endpoint returns a 401, 404, 500delete the jwt and just take them to the login cardif you dont have a jwt stored from the beggining show them the login card as wellin the login card page there should be a title above the card that says "Palatron 5000" there must be and imput for username and password the inputs should be sent to an enpoint 10.10.1.180:5000/auth/login
+
+this will return a json {"jwt": token} with a 500 code, if its a 401 ask to check credentials with a warning in the card
+
+2: Main
+
+once the user has a valid jwt he will be able to acces the main menu
+
+the main menu should consist of a welcome sign with the users name
+
+the nave with have the option for three tools, IP , BACKUPS and CARGA
+
+when you press on the Carga tool on the nav:
+
+it will give you an input for a SERVER once the input is given and a botton that says query is clicked it must send a json with the jwt as bearer and the server and username similar to this: {"user":"JulianZeb","srv":"cvar4"}
+
+this is to be sent to 10.10.1.180:5000/api/carga
+
+the api will return a json with iether a 200, 500 or 400:
+
+{        "data": " 14:06:01 up 5 days,  3:59,  0 users,  load average: 5.27, 4.90, 4.93"},200
+
+{ "error": "not a user"},400
+
+{"error": "not a server"},400
+
+{ "error": "error ejecutando query"},400
+
+if it returns and error show the error on the page that in a way that the user can see it even if he sends another requests, all responses are logged on top of the old one, the top being the most recent ones
+
+as for the IP tool
+
+similar to carga it will have an input for the server but also asking for and ip
+
+to 10.10.1.180:5000/api/ipcheck it has to send the jwt as a bearer and a body like:
+
+{
+    "srv": "example",
+    "ip": "123.123.123.123"
+    "username": "user123"
+}
+
+
+the response can have a 500 or 200 or 400 status
+
+
+if the response is 500 or 400 it will have an error file that you should log in the web for the user like in CARGA
+
+the newest response on top, the old ones on the bottom
+
+if the response is a 200 the response should be logger in the same fashion
+
+
+
+
+As for the BACKUPS tool it will need an input for the server and the client name along with the jwt as a bearer
+
+{
+    "user":"JulianZeb",
+    "srv":"cra4",
+    "client":"vimaxcin"
+}
+
+the responses should be logged simillarly to the other 2 tools, with the newest on top and older on the bottom
+
+
+
+
+Now as for styling the pages should make use of a dark blue, dark gray and navy blue tones in the pallette
+
+

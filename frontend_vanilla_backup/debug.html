@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Connectivity Debugger</title>
+    <style>
+        body {
+            background: #333;
+            color: #fff;
+            font-family: sans-serif;
+            padding: 20px;
+        }
+
+        .log {
+            background: #000;
+            padding: 10px;
+            border: 1px solid #555;
+            height: 300px;
+            overflow-y: scroll;
+            font-family: monospace;
+        }
+
+        .success {
+            color: #0f0;
+        }
+
+        .error {
+            color: #f00;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>API Connectivity Test</h1>
+    <div style="margin-bottom: 20px;">
+        <button id="testBtn">Test Login Connection</button>
+        <button id="clearBtn">Clear Log</button>
+    </div>
+
+    <div>
+        <strong>Gateway URL:</strong> <span id="gatewayUrl"></span>
+    </div>
+
+    <div id="log" class="log"></div>
+
+    <script>
+        const logDiv = document.getElementById('log');
+        const gatewayPort = 6002;
+        const hostname = window.location.hostname;
+        const GATEWAY_URL = `http://${hostname}:${gatewayPort}/api`;
+
+        document.getElementById('gatewayUrl').textContent = GATEWAY_URL;
+
+        function log(msg, type = 'info') {
+            const div = document.createElement('div');
+            div.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+            if (type === 'error') div.className = 'error';
+            if (type === 'success') div.className = 'success';
+            logDiv.appendChild(div);
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(msg);
+        }
+
+        document.getElementById('clearBtn').onclick = () => logDiv.innerHTML = '';
+
+        document.getElementById('testBtn').onclick = async () => {
+            log(`Starting test to: ${GATEWAY_URL}/login`);
+
+            try {
+                const response = await fetch(`${GATEWAY_URL}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: 'testuser', password: 'testpassword' })
+                });
+
+                log(`Response Status: ${response.status}`, response.ok ? 'success' : 'error');
+
+                try {
+                    const data = await response.json();
+                    log(`Response Body: ${JSON.stringify(data)}`, 'success');
+                } catch (e) {
+                    log(`Error parsing JSON: ${e.message}`, 'error');
+                }
+
+            } catch (error) {
+                log(`FETCH ERROR: ${error.name}: ${error.message}`, 'error');
+                log(`Usually caused by CORS or Connection Refused.`, 'error');
+            }
+        };
+    </script>
+</body>
+
+</html>

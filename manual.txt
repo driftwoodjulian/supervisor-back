@@ -1,0 +1,63 @@
+ESTRUCTURA DE CONTACTO CON CLIENTE
+
+(IDIOMA A UTILIZAR: amigable y neutral)
+
+1) SALUDO INICIAL: Se sugiere utilizar el saludo automático de bienvenida; en caso de ser necesario se puede agregar algo al saludo, esto se deberá tipear sobre el saludo pre-establecido.
+
+Ejemplo: Bienvenido a ToWebs, en que podemos ayudarte?
+
+2) PARAFRASEO (opcional): es la acción de darle al cliente a entender que hemos leído en detalle la explicación del inconveniente que presenta, esto no quiere decir que debamos repetir cada palabra que nos dice el cliente, pero si darle a entender que hemos entendido su situación y que vamos a ayudarlo en todo lo que podamos dentro de nuestra función. Este paso no es necesario pero en caso de que se de se debe apreciar en la evaluacion.
+
+Ejemplo: CLIENTE: No salen los mails, no puedo enviar nada; OPERADOR: Entiendo, estás teniendo problemas con el envío de mails, te pido me indiques... (gestión puntual para cada caso)
+
+3) PEDIDO DE TIEMPO EN ESPERA: cada vez que debamos hacer esperar al cliente para gestionar algo que esté dentro de nuestras funciones, debemos indicarle que lo haremos esperar.
+
+Ejemplo 1: Pedro, te pido que aguardes un momento mientras verifico tal cosa...
+Ejemplo 2: Pedro, te dejo un momento, me mantengo en línea gestionando tal cosa...
+Ejemplo 3: Aguarde un momento por favor...
+
+A TENER EN CUENTA: cada vez que dejamos a un cliente en espera, cada 2 minutos aprox., si no hemos finalizado nuestra gestión, debemos pedirle más tiempo de espera.
+
+4) EXPLICACION DE LA SITUACION: frente a cada situación, debemos explicar un poco, sin demasiado detalle, de lo que hemos realizado (en caso de haberlo resuelto) o el problema que hemos encontrado (en caso de NO haberlo resuelto). En caso que el problema no pueda ser resuelto desde nuestra gestión, deberemos indicárselo al cliente e indicar que crearemos un ticket, detallando el inconveniente, luego facilitaremos al cliente el numero de ticket para que él mismo pueda darle seguimiento, para ello vamos a pedir USUARIO y CONTRASEÑA de su panel de control.
+
+Ejemplo: Pedro, despues de algunas pruebas veo que el problema en el envío de mails es porque está congestionado el servidor y quedaron encolados, voy a crear un ticket desde tu panel de control para que tengas un número de gestión para poder darle seguimiento, para ello necesito que me brindes tu USUARIO y CONTRASEÑA, por favor.
+
+Ejemplo 1: Pedro, podemos ayudarte en algo más?
+Ejemplo 2: Pedro, tenés alguna otra consultar que quieras hacernos?
+
+CRITERIOS A TENER ENCUANTA CUANDO EVALUAS LA ATENCION AL CLIENTE:
+
+1) Los chats que se te muestran son en vivo por lo que aun no se han finalizado o resuelto oficialmente, por ende no debes fijarte tanto en lo que le falta podecir al agente de soporte sino lo que si hizo y lo que pudo hacer mejor.
+
+2) Teniendo en cuanto de nuevo que estos chats son en vivo, no se espera encontrar un chat perfecto, entonce tampoco se espera encontrarse con una despedida de parte del agente de soporte
+
+3) Las respuestas con tono afectivo (no sacastico) de parte del cliente son buena medida de su satisfacción lo cual se debe valorar en la evaluación. Ten en cuanta respuestas del cliente como:
+
+    Ejemplo: Gracias!
+    Ejemplo: Me salvaste!
+    Ejemplo: Me salvaste de una situación difícil!
+    Ejemplo: Buena atencion
+
+    entre otras frases de esa indole
+
+4) Cuando el cliente le comienza a describir el problema al agente el agente puede iniciar una secuencia de preguntas y realizar pruebas para entender mejor el problema y poder resolverlo de manera más eficiente antes de darle una respuesta contra al cliente. Por ejemplo:
+
+    Ejemplo: Pedro, veo que tiene problamas de envio de correos. Puede indicarme si desde este enlace puede acceder a sus correos?
+    Ejemplo: Veo, que su dominio esta vencido, puede ser que no halla renovado el dominio con la entidad correspondiente?
+    Ejemplo: Veo que no puede ingresar a su cpanel, me puede indicar desde que enlace esta tratando de acceder?
+
+5) El chat es un medio seguro e encryptado, por lo que se pueden pedir datos sensibles como USUARIO y CONTRASEÑA de su panel de control, sin temor a que estos datos puedan ser interceptados.  
+    Ejemplo: 
+     -Agente: Pedro, para que pueda resolver su problema, necesito que me brinde su USUARIO y CONTRASEÑA de su panel de control, por favor.
+     -Cliente: Ok, si, usuario: Juan contraseña: 123456 .
+     -Agente: Perfecto, aguarde un momento.
+
+    Cabe mencionar que en muchos casos el agente puedel ELEGIR si desea pedir los datos sensibles del cliente o no, por lo que en algunos casos no se debe valorar si el agente pide los datos sensibles del cliente o no.
+
+6) El agente debe tomarse un tiempo para investigar y explicar al cliente la situación, por lo que en algunos casos la explicacion puede llegar tarde, por lo que en algunos casos no se debe valorar si el agente respondio al problema en el momento o no. Si se valora poder darle una explicacion al cliente pero no es necesario.
+
+7) El parafraseo no es obligatorio pero en caso de que se realice se debe valorar en la evaluacion pero la ausencia de parafraseo no debe ser motivo de descalificacion o calificacion negativa pero si se debe valorar si el agente mantiene un parafraseo correcto.
+
+8) La ortografia y la gramatica no son obligatorias pero en caso de que se realice se debe valorar en la evaluacion pero la ausencia de ortografia y gramatica no debe ser motivo de descalificacion o calificacion negativa pero si se debe valorar si el agente mantiene una ortografia y gramatica correcta.
+
+9) El pedido de tiempo de espera no es obligatorio pero en caso de que se realice se debe valorar en la evaluacion pero la ausencia de pedido de tiempo de espera no debe ser motivo de descalificacion o calificacion negativa pero si se debe valorar si el agente pide tiempo de espera.

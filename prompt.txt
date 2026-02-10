@@ -1,0 +1,58 @@
+# MASTER ARCHITECTURAL PROMPT: SCALABLE MULTI-HOST EVALUATION SYSTEM
+
+## 1. PROJECT STRUCTURE & REFINEMENT RULES
+You are a Lead Systems Engineer. Build a high-throughput system across four directories. 
+- CODE CLEANLINESS: Any function/method > 50 lines must be abstracted into modular components.
+- FRONTEND: Use JavaScript ONLY (No TypeScript, No Next.js). 
+    - Every component MUST have its own dedicated file. 
+    - Reusable functions must be placed in a '/utils' directory.
+- BACKEND: Use Python with SQLAlchemy for all database interactions to ensure security and prevent SQL injections.
+- CONFIGURATION: All API endpoints and host IPs for every service MUST be defined in .env files. No hardcoded URLs.
+
+## 2. DISTRIBUTED ARCHITECTURE (NO DOCKER)
+Manage all processes using Systemd (.service files) and Python venvs.
+
+### HOST A (Application Host)
+- /gateway: Central API Gateway for routing and initial validation.
+- /backend: Python/SQLAlchemy orchestrator. Analyze existing chat DBs, manage user auth, and handle async communication with Host B.
+- /frontend: React/Vue (JS-only) dashboard. Use JWT-secured WebSockets for live evaluation updates.
+
+### HOST B (AI Inference Host)
+- /ai_layer: vLLM-powered inference server (use vLLM for high throughput/data parallelism).
+- MODEL PATH: /home/juli/gptoss/gpt-oss-20b
+- RESTRICTIONS: Confined to /home/juli/gptoss/. Create/delete permissions only for your own files. Use ssh/scp/github for deployment.
+
+## 3. AI EXPERT EVALUATION LOGIC
+The AI must act as a B2B/B2C satisfaction expert. It analyzes chat logs and returns a JSON object.
+
+### SYSTEM PROMPT REQUIREMENTS:
+"You are a B2C/B2B satisfaction expert. Evaluate the support agent's performance.
+- OUTPUT: Strictly a valid JSON object.
+- SCORE: Must be EXACTLY ONE of: 'horrible', 'bad', 'neutral', 'good', 'great'.
+- LANGUAGE: The 'reason' and 'improvement' fields MUST be in SPANISH."
+
+### OUTPUT JSON SCHEMA:
+{
+  "score": "string (exactly one of: horrible, bad, neutral, good, great)",
+  "reason": "Spanish text (max 500 chars) explaining the choice.",
+  "improvement": "Spanish text (max 800 chars) on how the operator can improve.",
+  "key_messages": [int, int] // Indices of agent messages that impacted the score.
+}
+
+### EXAMPLE OF VALID OUTPUT:
+{
+  "score": "neutral",
+  "reason": "El agente resolvió la duda técnica, pero el tiempo de respuesta inicial fue excesivo (15 minutos), lo que generó frustración inicial en el cliente.",
+  "improvement": "Se recomienda al operador saludar de inmediato para establecer contacto mientras busca la solución técnica. El tono fue correcto, pero faltó proactividad.",
+  "key_messages": [2, 5, 8]
+}
+
+## 4. SCALABILITY & PERFORMANCE
+- THROUGHPUT: Use vLLM on Host B with Data Parallelism to process independent chats in parallel.
+- CONCURRENCY: Backend must feed the AI host asynchronously (non-blocking).
+- PERSISTENCE: Evaluations must be stored in MySQL. If a Chat ID evaluation exists, UPDATE it; otherwise, INSERT.
+- LATENCY: Total end-to-end processing time (Backend -> AI -> DB -> Frontend) must be < 30 seconds.
+
+## 5. SECURITY
+- Implement JWT for Frontend authentication and WebSocket connection security.
+- Use SQLAlchemy ORM patterns for all queries to ensure data integrity.
