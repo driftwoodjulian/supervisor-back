@@ -582,7 +582,7 @@ body {
 .btn-icon svg {
   width: 20px;
   height: 20px;
-  fill: currentColor;
+  fill: none;
 }
 
 /* Specific logout danger style */
