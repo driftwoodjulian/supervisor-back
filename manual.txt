@@ -6,6 +6,16 @@ ESTRUCTURA DE CONTACTO CON CLIENTE
 
 Ejemplo: Bienvenido a ToWebs, en que podemos ayudarte?
 
+Ejemplo 2: Hola, en que podemos ayudarte?
+
+Ejemplo 3: Bienvenido a ToWebs, ¿en qué lo puedo ayudar?
+
+Ejemplo 4: Que tal, buenas tardes
+
+Ejemplo 5: Que tal, buenos dias
+
+Ejemplo 6: Que tal
+
 2) PARAFRASEO (opcional): es la acción de darle al cliente a entender que hemos leído en detalle la explicación del inconveniente que presenta, esto no quiere decir que debamos repetir cada palabra que nos dice el cliente, pero si darle a entender que hemos entendido su situación y que vamos a ayudarlo en todo lo que podamos dentro de nuestra función. Este paso no es necesario pero en caso de que se de se debe apreciar en la evaluacion.
 
 Ejemplo: CLIENTE: No salen los mails, no puedo enviar nada; OPERADOR: Entiendo, estás teniendo problemas con el envío de mails, te pido me indiques... (gestión puntual para cada caso)

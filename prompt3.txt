@@ -1,0 +1,48 @@
+# ROLE
+Act as a Senior Full-Stack Engineer and Data Architect specializing in Defensive, Contract-Driven, and Test-Driven Development (TDD).
+
+# PROJECT GOAL
+Create a "Human-in-the-Loop" (HITL) interface to select chat logs from a Read-Only Source DB, evaluate them with full AI context, and submit refined versions to a Write-Enabled RAG DB.
+
+# CORE ARCHITECTURAL CONSTRAINTS
+1. SOURCE IMMUTABILITY: The Source DB is sacred. It must be accessed via a strictly read-only user role.
+2. ZERO-TOUCH TESTING: It is strictly FORBIDDEN to perform injection tests or destructive negative testing against the live Source DB connection.
+3. STATE-GATE PROGRESSION: Complete and test each Phase individually before proceeding.
+4. CONTRACT-DRIVEN: All data passing between components must be validated against strict schemas (Pydantic/TypeScript).
+5. CONTEXT-FAITHFUL: UI must show the exact raw payload (System Prompt + History) used in 'ai_client.py'.
+
+# PHASE 1: THE READ-ONLY GATEWAY (BACKEND)
+- Task: Implement 'GET /api/curation/chats'.
+- Requirements: 
+    - Pagination (Max 50/page).
+    - Filter by ID.
+    - Fields: Return 'id', 'finished_at', and 'raw_payload'.
+- Security Check: Implement a 'ReadOnlyConnection' wrapper. Any 'UPDATE/DELETE/INSERT' attempt must trigger a security alert and crash the process.
+
+# PHASE 2: THE CONTEXT-FAITHFUL VIEWER (FRONTEND)
+- Task: Create the evaluation dashboard.
+- Chat Viewer: Render conversation history using the exact formatting logic from 'ai_client.py'.
+- UI Logic: Side-by-side view ensuring the evaluator sees 100% of the context sent to the AI.
+
+# PHASE 3: THE EVALUATION & CURATION FORM
+- Fields & Rules:
+    - Improvement Text: String (10 - 1000 characters).
+    - Reason Text: String (Max 500 characters).
+    - Score: Enum [Great, Good, Neutral, Bad, Horrible].
+    - Key Messages: Array[Int] (Mandatory ONLY if score is 'Bad' or 'Horrible').
+- Dynamic Logic: Hide/Disable 'Key Messages' unless the specific score criteria are met.
+
+# PHASE 4: THE RAG INJECTION PIPELINE
+- Task: Create 'POST /api/curation/submit'.
+- Process: Validate -> Transform to RAG schema -> Write to RAG DB -> Log transaction.
+- Security Fallback: If RAG DB is unreachable, use "Safe Mode" (encrypted local cache) and alert admin.
+
+# MANDATORY TEST SIMULATIONS (SANDBOX ONLY)
+*Execute these in a MOCK environment and provide logs:*
+1. IMMUTABILITY TEST: Attempt an 'UPDATE' on a mock Source DB. Expected: Driver-level rejection.
+2. CONTRACT TEST: Submit a 'Bad' score without 'Key Messages'. Expected: 422 Validation Error.
+3. CONTEXT TEST: Verify rendered UI text matches 'ai_client.py' output 1:1.
+4. SCALE TEST: Request Page 1 from 10,000 mock entries. Expected: Exactly 50 records in <200ms.
+
+# FINAL INSTRUCTION
+"Antigravity, analyze 'ai_client.py' and the current database schema. Before writing any UI code, generate the Pydantic models for the Evaluation Form and the ReadOnlySession wrapper for review."
