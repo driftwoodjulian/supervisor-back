@@ -391,8 +391,10 @@ body {
   background: #000000;
   border-bottom: 2px solid #00ff41;
   color: #00ff41;
-  padding: 32px 20px;
-  text-align: center;
+  padding: 20px 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   box-shadow: 0 0 20px rgba(0, 255, 65, 0.1);
 }
 
@@ -403,13 +405,15 @@ body {
   text-shadow: 0 0 10px #00ff41;
   letter-spacing: 4px;
   font-family: 'Courier New', monospace;
+  text-align: left;
 }
 
 .app-header p {
-  margin: 8px 0 0 0;
-  font-size: 16px;
+  margin: 4px 0 0 0;
+  font-size: 14px;
   opacity: 0.8;
   color: #00cc33;
+  text-align: left;
 }
 
 .header-user {
@@ -422,11 +426,10 @@ body {
 }
 
 .header-controls {
-  position: absolute;
-  top: 20px;
-  right: 20px;
+  /* Position static by default for flexbox, absolute removed */
   display: flex;
   gap: 10px;
+  align-items: center;
 }
 
 .clickable-header {
@@ -443,17 +446,17 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 16px;
-    position: relative;
-    padding-bottom: 20px;
+    gap: 12px;
+    padding: 16px;
   }
 
   .header-controls {
     position: static;
-    /* Stack naturally */
     width: 100%;
     justify-content: center;
-    margin-top: 10px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+    /* allow wrap on very small screens */
   }
 
   .app-header h1 {
@@ -552,6 +555,46 @@ body {
   background-color: #00ff41 !important;
   color: black !important;
   box-shadow: 0 0 15px #00ff41;
+}
+
+/* Icon Buttons for Header */
+.btn-icon {
+  background: transparent;
+  border: 1px solid #00ff41;
+  color: #00ff41;
+  width: 36px;
+  height: 36px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  padding: 0;
+}
+
+.btn-icon:hover {
+  background: #00ff41;
+  color: #000;
+  box-shadow: 0 0 10px #00ff41;
+  transform: scale(1.05);
+}
+
+.btn-icon svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+
+/* Specific logout danger style */
+.btn-icon-danger {
+  border-color: #ff003c;
+  color: #ff003c;
+}
+
+.btn-icon-danger:hover {
+  background: #ff003c;
+  color: #000;
+  box-shadow: 0 0 10px #ff003c;
 }
 
 .login-container {
