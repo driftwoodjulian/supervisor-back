@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import Login from './components/Login';
-import Dashboard from './components/Dashboard';
-import { isAuthenticated } from './auth';
+import CurationDashboard from './components/CurationDashboard';
 
 function App() {
   const [isAuth, setIsAuth] = useState(isAuthenticated());
+  const [view, setView] = useState('dashboard'); // 'dashboard' | 'curation'
 
   const handleLoginSuccess = () => {
     setIsAuth(true);
@@ -12,14 +12,20 @@ function App() {
 
   const handleLogout = () => {
     setIsAuth(false);
+    setView('dashboard');
   };
 
   return (
     <div className="App">
-      {isAuth ? (
-        <Dashboard onLogout={handleLogout} />
-      ) : (
+      {!isAuth ? (
         <Login onLoginSuccess={handleLoginSuccess} />
+      ) : view === 'curation' ? (
+        <CurationDashboard onBack={() => setView('dashboard')} />
+      ) : (
+        <Dashboard
+          onLogout={handleLogout}
+          onNavigateCuration={() => setView('curation')}
+        />
       )}
     </div>
   );

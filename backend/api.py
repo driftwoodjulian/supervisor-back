@@ -344,6 +344,136 @@ def get_agent_stats():
         eval_session.close()
         source_session.close()
 
+@app.route('/api/curation/chats', methods=['GET'])
+@token_required
+def get_curation_chats():
+    from backend.security import ReadOnlySession, SecurityAlert
+    from backend.ai_client import AIClient
+    from sqlalchemy import desc
+    import json
+    
+    # 1. Initialize Read-Only Session
+    # Wraps the SourceSessionLocal to enforce immutability
+    raw_session = SourceSessionLocal()
+    session = ReadOnlySession(raw_session)
+    
+    try:
+        # 2. Parse Query Params
+        page = request.args.get('page', 1, type=int)
+        per_page = 50
+        chat_id = request.args.get('chat_id', type=int)
+        
+        # 3. Build Query
+        query = session.query(Chat)
+        
+        if chat_id:
+            query = query.filter(Chat.id == chat_id)
+        else:
+            # Default sort by most recent closed or created
+            query = query.order_by(desc(Chat.createdAt))
+            
+        # Pagination
+        offset = (page - 1) * per_page
+        chats = query.limit(per_page).offset(offset).all()
+        
+        results = []
+        ai_client = AIClient() # Used for payload construction
+        
+        for chat in chats:
+            # 4. Fetch Messages for Context
+            msgs = session.query(Message).filter(Message.chatId == chat.id).order_by(Message.createdAt).all()
+            
+            # Format history for AIClient
+            history = []
+            for m in msgs:
+                author_data = m.author
+                role = "agent"
+                if isinstance(author_data, str):
+                    role = "customer"
+                
+                content = m.text or ""
+                
+                # We need to construct the dict format AIClient expects
+                # It expects: {'role': '...', 'content': '...', 'timestamp': '...', 'author': ...}
+                history.append({
+                    "role": role,
+                    "content": content,
+                    "timestamp": m.createdAt.isoformat() if m.createdAt else None,
+                    "author": author_data
+                })
+            
+            # 5. Generate Raw Payload (Context-Faithful)
+            # This reconstructs EXACTLY what the AI would see/saw
+            payload = ai_client.build_payload(history)
+            
+            results.append({
+                "id": chat.id,
+                "finished_at": chat.closedAt.isoformat() if chat.closedAt else None,
+                "raw_payload": json.dumps(payload, ensure_ascii=False)
+            })
+            
+        return jsonify(results)
+
+    except SecurityAlert as e:
+        # This catch is mainly for testing; in prod it might crash or alert
+        print(f"CRITICAL SECURITY ALERT CAUGHT: {e}")
+        return jsonify({"error": "Security Violation: Write attempt on Read-Only DB"}), 500
+    except Exception as e:
+        print(f"Curation API Error: {e}")
+        return jsonify({"error": str(e)}), 500
+    finally:
+        session.close() # Closes the underlying session
+
+@app.route('/api/curation/submit', methods=['POST'])
+@token_required
+def submit_curation():
+    from backend.schemas import EvaluationSubmission
+    from backend.database import EvalSession
+    import json
+    
+    try:
+        # 1. Validate Payload
+        data = request.json
+        submission = EvaluationSubmission(**data)
+        
+        # 2. Save to DB
+        session = EvalSession()
+        try:
+            # Check if already evaluated? (Optional constraints, but good practice)
+            # existing = session.query(Evaluation).filter_by(chat_id=submission.chat_id).first()
+            # if existing: return jsonify({"error": "Already evaluated"}), 409
+
+            # Create Evaluation Record
+            eval_record = Evaluation(
+                chat_id=submission.chat_id,
+                score=submission.score.value, # Enum to string
+                reason=submission.reason,
+                improvement=submission.improvement,
+                # Store key_messages as JSON string or relation?
+                # The model `Evaluation` has `key_messages` as... let's check model.
+                # Assuming it's a JSON column or text.
+                # For SQLite, it's likely Text.
+                key_messages=json.dumps(submission.key_messages),
+                created_at=datetime.datetime.utcnow()
+            )
+            
+            session.add(eval_record)
+            session.commit()
+            
+            return jsonify({"status": "success", "id": eval_record.id}), 201
+            
+        except Exception as e:
+            session.rollback()
+            raise e
+        finally:
+            session.close()
+
+    except ValueError as e:
+        return jsonify({"error": str(e), "details": "Validation Failed"}), 400
+    except Exception as e:
+        print(f"Submission Error: {e}")
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == '__main__':
     init_db()
     app.run(host='0.0.0.0', port=int(os.getenv('BACKEND_PORT', 5001)))

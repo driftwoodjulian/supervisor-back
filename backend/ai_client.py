@@ -85,14 +85,21 @@ class AIClient:
             print("AI Client: SIMULATION MODE")
             return self._test_response()
 
-        # Resolve active model connection
-        base_url, model_name = self._resolve_connection()
-
+    def build_payload(self, history):
+        """
+        Constructs the exact payload that would be sent to the AI.
+        Used for both live evaluation and the Curation View (Context-Faithful).
+        """
         # Filter history to only include the conversation after the last agent transfer
         history = self._filter_transfer_history(history)
-
         formatted_conversation = self._format_conversation_with_time(history)
         
+        # Resolve active model for context (though payload structure is mostly static)
+        # For curation, we might want to know which model *was* used, but here we just show
+        # what *would* be sent now. 
+        # Actually, for curation of *past* chats, we might stick to a standard format.
+        _, model_name = self._resolve_connection() # Default to current active or safe default
+
         payload = {
             "model": model_name,
             "messages": [
@@ -104,10 +111,6 @@ class AIClient:
         }
         
         # Safety Truncation Logic (Targeting 8192 context)
-        # 1024 (output) + System (~400) + Manual (~2300) = ~3724 reserved.
-        # Leaving ~4400 for chat.
-        # We'll use a conservative estimate: 8192 - 1024 - 500 (buffer) = 6668 max input tokens.
-        
         TOTAL_CTX_LIMIT = 8192
         MAX_INPUT_TOKENS = TOTAL_CTX_LIMIT - payload["max_tokens"] - 200 # Buffer
         
@@ -117,7 +120,6 @@ class AIClient:
         
         # Truncate if necessary
         if estimated_tokens > MAX_INPUT_TOKENS:
-            print(f"DEBUG: Input too long ({estimated_tokens} > {MAX_INPUT_TOKENS}). Truncating history...")
             # Iteratively remove oldest messages
             while estimated_tokens > MAX_INPUT_TOKENS and len(history) > 1:
                 history.pop(0) # Remove oldest
@@ -127,31 +129,26 @@ class AIClient:
             
             # Update payload content
             payload["messages"][1]["content"] = formatted_conversation
-        
-        # Safety Truncation Logic (Targeting 8192 context)
-        # 1024 (output) + System (~400) + Manual (~2300) = ~3724 reserved.
-        # Leaving ~4400 for chat.
-        # We'll use a conservative estimate: 8192 - 1024 - 500 (buffer) = 6668 max input tokens.
-        
-        TOTAL_CTX_LIMIT = 8192
-        MAX_INPUT_TOKENS = TOTAL_CTX_LIMIT - payload["max_tokens"] - 200 # Buffer
-        
-        # Estimate current input
-        current_input_text = self.system_prompt + formatted_conversation
-        estimated_tokens = self._estimate_tokens(current_input_text)
-        
-        # Truncate if necessary
-        if estimated_tokens > MAX_INPUT_TOKENS:
-            print(f"DEBUG: Input too long ({estimated_tokens} > {MAX_INPUT_TOKENS}). Truncating history...")
-            # Iteratively remove oldest messages
-            while estimated_tokens > MAX_INPUT_TOKENS and len(history) > 1:
-                history.pop(0) # Remove oldest
-                formatted_conversation = self._format_conversation_with_time(history)
-                current_input_text = self.system_prompt + formatted_conversation
-                estimated_tokens = self._estimate_tokens(current_input_text)
             
-            # Update payload content
-            payload["messages"][1]["content"] = formatted_conversation
+        return payload
+
+    def evaluate_chat(self, history):
+        """
+        Sends chat history to AI Host and returns parsed JSON evaluation.
+        History should be a list of dicts: [{'role': 'user'|'agent', 'content': '...', 'timestamp': '...', 'author_name': '...'}]
+        """
+        if self.simulate:
+            print("AI Client: SIMULATION MODE")
+            return self._test_response()
+
+        # Resolve active model connection
+        base_url, _ = self._resolve_connection()
+        
+        # Build Payload
+        payload = self.build_payload(history)
+        
+        # Payload is already built and truncated by build_payload
+
 
 
         try:

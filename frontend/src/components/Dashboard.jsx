@@ -6,7 +6,7 @@ import ModelSwitcher from './ModelSwitcher';
 import ChatModal from './ChatModal';
 import AgentStatsModal from './AgentStatsModal';
 
-const Dashboard = ({ onLogout }) => {
+const Dashboard = ({ onLogout, onNavigateCuration }) => {
     const [evals, setEvals] = useState([]);
     const [modalState, setModalState] = useState({ show: false, chatId: null, data: {} });
     const [showStats, setShowStats] = useState(false);
@@ -77,27 +77,38 @@ const Dashboard = ({ onLogout }) => {
                 <div>
                     <h1>SUPERVISOR AI</h1>
                     <p>Live B2B/B2C Evaluation Stream</p>
-                </div>
-                <div className="header-controls d-flex align-items-center gap-3">
-                    <ModelSwitcher />
-                    <button
-                        onClick={() => setShowStats(true)}
-                        className="btn btn-icon"
-                        title="Agent Stats"
-                    >
-                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M18 20V10M12 20V4M6 20V14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                    </button>
-                    <button
-                        onClick={() => { removeToken(); onLogout(); }}
-                        className="btn btn-icon btn-icon-danger"
-                        title="Logout"
-                    >
-                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M18.36 6.64a9 9 0 1 1-12.73 0M12 2v10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                    </button>
+                    <div className="header-controls d-flex align-items-center gap-3">
+                        <button
+                            onClick={onNavigateCuration}
+                            className="btn btn-icon"
+                            title="Curation Console"
+                            style={{ borderColor: '#faed27', color: '#faed27' }} // Warning Yellow for Admin/Curation
+                        >
+                            <svg viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z" />
+                                <path fillRule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z" />
+                            </svg>
+                        </button>
+                        <ModelSwitcher />
+                        <button
+                            onClick={() => setShowStats(true)}
+                            className="btn btn-icon"
+                            title="Agent Stats"
+                        >
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M18 20V10M12 20V4M6 20V14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                        </button>
+                        <button
+                            onClick={() => { removeToken(); onLogout(); }}
+                            className="btn btn-icon btn-icon-danger"
+                            title="Logout"
+                        >
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M18.36 6.64a9 9 0 1 1-12.73 0M12 2v10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                        </button>
+                    </div>
                 </div>
             </div>
 
