@@ -48,37 +48,66 @@ def strict_kill():
     Enforces the 'Sequential Lifecycle'.
     Sends SIGTERM, waits, then SIGKILL to all known AI backend processes.
     Verifies they are actually gone.
+    Uses sudo/pgrep to ensure system services and zombie processes are killed.
     """
     print("[Manager] STRICT KILL: Stopping all AI services...")
     
-    # 1. SIGTERM
-    subprocess.run(["pkill", "-TERM", "-u", os.environ.get("USER"), "-f", "vllm.entrypoints.openai.api_server"])
-    subprocess.run(["pkill", "-TERM", "-u", os.environ.get("USER"), "ollama"]) # ollama serve
+    # 0. Stop System Service (Ollama)
+    # Most robust way for Ollama is systemctl first
+    subprocess.run(["sudo", "systemctl", "stop", "ollama"], stderr=subprocess.DEVNULL)
     
+    # 1. Gather PIDs
+    # We target:
+    # - vllm (any internal vllm process)
+    # - ollama (the bin)
+    targets = ["vllm", "ollama"]
+    pids = []
+    
+    for t in targets:
+        try:
+            # pgrep -f matches full command line
+            res = subprocess.run(["pgrep", "-f", t], capture_output=True, text=True)
+            if res.returncode == 0:
+                pids.extend(res.stdout.strip().split('\n'))
+        except Exception as e:
+            print(f"[Manager] Error finding pids for {t}: {e}")
+
+    if not pids:
+        print("[Manager] No active AI processes found.")
+        return True
+
+    print(f"[Manager] Found PIDs to kill: {pids}")
+    
+    # 2. SIGTERM (Try nice kill first)
+    # Using sudo to ensure we can kill regardless of ownership
+    subprocess.run(["sudo", "kill", "-15"] + pids, stderr=subprocess.DEVNULL)
     time.sleep(5)
     
-    # 2. SIGKILL
-    subprocess.run(["pkill", "-KILL", "-u", os.environ.get("USER"), "-f", "vllm.entrypoints.openai.api_server"])
-    subprocess.run(["pkill", "-KILL", "-u", os.environ.get("USER"), "ollama"])
-    
+    # 3. SIGKILL (Force kill)
+    subprocess.run(["sudo", "kill", "-9"] + pids, stderr=subprocess.DEVNULL)
     time.sleep(2)
     
-    # 3. Verify
-    # We iterate a few times to ensure they are gone.
-    for i in range(10):
-        # check if pgrep finds anything
-        vllm_check = subprocess.run(["pgrep", "-f", "vllm.entrypoints.openai.api_server"], capture_output=True)
-        ollama_check = subprocess.run(["pgrep", "ollama"], capture_output=True)
+    # 4. Verify
+    still_running = []
+    for p in pids:
+        # Check if pid still exists
+        # kill -0 <pid> checks if process exists and we actally *could* signal it (but sudo needed?)
+        # safer to just re-scan pgrep
+        pass 
         
-        if vllm_check.returncode == 1 and ollama_check.returncode == 1:
-            print("[Manager] STRICT KILL: cleanup verified.")
-            return True
+    # Re-scan to be sure
+    remaining_pids = []
+    for t in targets:
+         res = subprocess.run(["pgrep", "-f", t], capture_output=True, text=True)
+         if res.returncode == 0 and res.stdout.strip():
+             remaining_pids.extend(res.stdout.strip().split('\n'))
+             
+    if remaining_pids:
+        print(f"[Manager] WARNING: Processes still running after SIGKILL: {remaining_pids}")
+        return False
         
-        print("[Manager] STRICT KILL: waiting for processes to exit...")
-        time.sleep(1)
-
-    print("[Manager] WARNING: Could not verify complete process cleanup!")
-    return False
+    print("[Manager] STRICT KILL: Cleanup complete.")
+    return True
 
 def monitor_activation(target_model):
     """Background loop to check when service is up."""
@@ -168,7 +197,12 @@ def get_status():
              # For now, let's just leave it, or mark off.
              pass 
              
-    return jsonify(current_state)
+    # Return current state plus the port if active
+    response = current_state.copy()
+    if current_state["model"]:
+         response["port"] = PORTS.get(current_state["model"])
+         
+    return jsonify(response)
 
 # Inference Proxy / Gatekeeper
 # Any request that assumes an active model should be gated here 

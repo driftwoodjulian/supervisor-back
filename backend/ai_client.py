@@ -54,10 +54,17 @@ class AIClient:
             resp = requests.get(manager_url, timeout=2).json()
             status = resp.get("status")
             model = resp.get("model")
+            port = resp.get("port")
             
             if status != "active":
                 print(f"Warning: AI Manager reports status '{status}'")
             
+            # Dynamic Port Selection
+            # If Manager reports a port, use it.
+            if port:
+                return f"http://{self.host_b_ip}:{port}/v1", model or "supervisor-ai"
+            
+            # Fallback Legacy Logic
             if model == "gemma":
                 # Ollama Configuration
                 return f"http://{self.host_b_ip}:11434/v1", "gemma2:27b"

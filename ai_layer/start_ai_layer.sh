@@ -10,16 +10,26 @@ echo "Mode: IDLE (User must select model via Dashboard)"
 export PATH=$PATH:/usr/local/bin:/usr/bin:$HOME/bin:$HOME/.local/bin:/snap/bin
 
 echo "[1/4] Cleaning up ALL AI processes..."
-# Kill any existing manager, ollama, or vllm processes owned by this user
-pkill -u $USER -f manager.py || true
-pkill -u $USER -f "ollama serve" || true
-pkill -u $USER -f "vllm.entrypoints.openai.api_server" || true
-sleep 2
+# Kill any existing manager, ollama, or vllm processes
+# Using strict sudo kill as requested for robustness
+
+# 1. Stop System Services
+sudo systemctl stop ollama || true
+
+# 2. Gather PIDs
+PIDS=$(pgrep -f "manager.py|ollama|vllm") || true
+
+if [ -n "$PIDS" ]; then
+    echo "Found lingering processes: $PIDS"
+    echo "Force killing..."
+    sudo kill -9 $PIDS || true
+else
+    echo "No lingering processes found."
+fi
 
 # Double check cleanup
 if pgrep -f "vllm.entrypoints.openai.api_server" > /dev/null; then
-    echo "WARNING: vLLM processes still running. Attempting force kill..."
-    pkill -9 -f "vllm.entrypoints.openai.api_server"
+    echo "WARNING: vLLM processes still running even after sudo kill. check manually."
 fi
 
 # --- 1. Manager Setup ---
