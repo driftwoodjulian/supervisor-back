@@ -1,0 +1,50 @@
+# ROLE
+Senior Frontend Developer / Performance Engineer.
+
+# OBJECTIVE
+Implement image rendering within the Dashboard Transcript view. This must be optimized for a high-volume data environment where multiple chats may be open or scrolled through simultaneously.
+
+# 1. URL RESOLUTION LOGIC
+
+    Utility: Create a shared utility src/utils/imageResolver.ts.
+
+    Logic: - Base URL: https://towebs.clientes.flamachat.com/
+
+        Function: getFlamachatUrl(path: string): string
+
+        Responsibility: Clean incoming paths (remove leading slashes) and return the absolute API URL.
+
+# 2. THE DASHBOARD IMAGE COMPONENT (<DashboardImage />)
+Create a component with the following "Anti-Jank" features:
+
+    Aspect Ratio Locking: Use CSS aspect-ratio or a container with a min-height to reserve space before the image loads. This prevents the dashboard from "jumping" (Cumulative Layout Shift).
+
+    Native Lazy Loading: Apply the loading="lazy" attribute to all images.
+
+    Styling:
+
+        Images should be constrained to a max-width (e.g., 300px) within the transcript bubble.
+
+        Use object-fit: cover and border-radius to match the dashboard's design system.
+
+    Fallback: Display a "Image loading..." skeleton state and an "Error loading image" icon if the Flamachat API returns a 404 or 500.
+
+# 3. TRANSCRIPT INTEGRATION
+
+    Audit: Scan the message payload for image references (as identified in the previous discovery phase).
+
+    Injection: Insert the <DashboardImage /> component immediately following the text in any message bubble that contains an image reference.
+
+    Empty State: Ensure that messages with only an image (no text) still render a valid message bubble.
+
+# 4. VERIFICATION TASKS
+Antigravity, provide confirmation of the following:
+
+    Network Audit: Show a screenshot or log of the browser's Network tab showing images being fetched from towebs.clientes.flamachat.com.
+
+    Layout Stability: Demonstrate that when a long transcript is scrolled, the scroll position does not change as images pop into view.
+
+    Accessibility: Ensure every rendered image has an alt tag (e.g., alt="Image from chat {id}").
+
+# EXECUTION
+"Antigravity, start by creating the imageResolver utility. Then, modify the Dashboard Transcript component to render these images. Do not touch the HITL/Curation console yet—we will migrate this logic there in the next step."

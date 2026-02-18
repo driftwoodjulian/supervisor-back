@@ -49,10 +49,10 @@ const EvaluationForm = ({ onSubmit, loading, selectedMessagesCount }) => {
             {/* Reason */}
             <div className="mb-3">
                 <label className="d-block mb-2 font-monospace">
-                    2. REASON <span className="text-muted small">({reason.length}/500)</span>
+                    2. REASON <span className="text-orange-glow small">({reason.length}/500)</span>
                 </label>
                 <textarea
-                    className="form-control bg-dark text-success border-success"
+                    className="form-control"
                     rows="3"
                     value={reason}
                     onChange={e => setReason(e.target.value)}
@@ -65,7 +65,7 @@ const EvaluationForm = ({ onSubmit, loading, selectedMessagesCount }) => {
             {/* Improvement */}
             <div className="mb-3">
                 <label className="d-block mb-2 font-monospace">
-                    3. IMPROVEMENT <span className="text-muted small">({improvement.length}/1000)</span>
+                    3. IMPROVEMENT <span className="text-orange-glow small">({improvement.length}/1000)</span>
                 </label>
                 <textarea
                     className="form-control bg-dark text-success border-success"

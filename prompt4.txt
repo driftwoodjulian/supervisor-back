@@ -1,0 +1,52 @@
+# ROLE
+Senior Data Systems Architect / Security Auditor.
+
+# OBJECTIVE
+Autonomously analyze the chat data structure in the Source DB to identify how images are stored, then generate a diagnostic script to retrieve their full URL paths.
+
+# PHASE 1: DATA STRUCTURE AUDIT (DISCOVERY)
+
+    Analyze Schema: Using the ReadOnlyConnection, inspect the raw_payload or message column of the Source DB.
+
+    Pattern Matching: Identify where image metadata is held. Look for:
+
+        File extensions (.png, .jpg, .jpeg, .webp).
+
+        Keys like file_id, url, image_path, or attachment.
+
+        Base64 strings or binary blobs (though we expect references).
+
+    Verify Reference Style: Determine if images are stored as absolute paths, relative paths, or just unique UUIDs.
+
+# PHASE 2: UTILITY GENERATION (THE SCRIPT)
+Generate a standalone Python script named fetch_chat_images.py.
+
+    Input: Must accept a chat_id as a CLI argument (python fetch_chat_images.py <ID>).
+
+    Processing:
+
+        Retrieve the specific chat record.
+
+        Extract all image references found in the audit phase.
+
+        URL Construction: Prepend the base URL https://towebs.clientes.flamachat.com/ to every reference found.
+
+        Normalization: Ensure there are no double slashes (e.g., com//path) in the final output.
+
+    Output: Print a clean list of URLs to the terminal. Format: [Message Index] [Role]: [Full URL].
+
+# PHASE 3: EXECUTION & VERIFICATION
+
+    Run a sample query to find any 3 chats in the DB that actually contain images.
+
+    Execute the generated fetch_chat_images.py against those 3 IDs.
+
+    Validation: Provide the terminal output of these tests. I will manually verify if the links are clickable and lead to the correct assets.
+
+# CONSTRAINTS
+
+    Strictly Read-Only: Do not perform any write operations.
+
+    No Assumptions: If you find multiple potential image fields, the script should report on all of them.
+
+    Error Handling: If a chat_id exists but has no images, print RESULT: NO_IMAGES_FOUND.

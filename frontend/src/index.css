@@ -27,8 +27,7 @@ body {
   flex-direction: column;
   gap: 30px;
   padding: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
+  margin: 0;
 }
 
 .score-section {
@@ -659,4 +658,61 @@ body {
   color: #00ff41;
   text-shadow: 0 0 5px #00ff41;
   box-shadow: inset 0 0 10px rgba(0, 255, 65, 0.2);
+}
+
+/* Curation List Helpers */
+.hover-bg-dark:hover {
+  background-color: #1a1a1a !important;
+  cursor: pointer;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+/* Global Success Color Overrides for Hacker Theme */
+.text-success {
+  color: #00ff41 !important;
+  text-shadow: 0 0 5px rgba(0, 255, 65, 0.3);
+}
+
+.border-success {
+  border-color: #00ff41 !important;
+  box-shadow: 0 0 5px rgba(0, 255, 65, 0.2);
+}
+
+.btn-outline-success {
+  color: #00ff41;
+  border-color: #00ff41;
+}
+
+.btn-outline-success:hover {
+  background-color: #00ff41;
+  color: #000;
+}
+
+/* Hacker Theme Forms */
+.form-control,
+.form-control:focus,
+.form-control:disabled,
+.form-control[readonly] {
+  background-color: #050505 !important;
+  color: #00ff41 !important;
+  border: 1px solid #00ff41 !important;
+  font-family: 'Fira Code', monospace;
+}
+
+.form-control:focus {
+  box-shadow: 0 0 10px rgba(0, 255, 65, 0.4) !important;
+  outline: none !important;
+}
+
+.form-control::placeholder {
+  color: rgba(0, 255, 65, 0.3) !important;
+  font-style: italic;
+}
+
+.text-orange-glow {
+  color: #ffaa00 !important;
+  text-shadow: 0 0 5px #ffaa00;
 }

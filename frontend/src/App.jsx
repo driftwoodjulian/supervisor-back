@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import Login from './components/Login';
 import CurationDashboard from './components/CurationDashboard';
+import Dashboard from './components/Dashboard';
+import { isAuthenticated } from './auth';
 
 function App() {
   const [isAuth, setIsAuth] = useState(isAuthenticated());
