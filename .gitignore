@@ -4,3 +4,7 @@ dist
 .vscode
 .idea
 *.log
+venv/
+evaluations.db
+__pycache__/
+*.pyc
