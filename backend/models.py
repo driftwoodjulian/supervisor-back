@@ -31,6 +31,7 @@ class Message(SourceBase):
     text = Column(String)
     createdAt = Column(DateTime)
     author = Column(JSON)
+    attachmentId = Column(UUID(as_uuid=True)) # Added for image resolution
     
     # chat = relationship("Chat", back_populates="messages")
 
@@ -40,6 +41,16 @@ class Account(SourceBase):
 
     id = Column(UUID(as_uuid=True), primary_key=True)
     pushName = Column(String)
+
+class Attachment(SourceBase):
+    __tablename__ = 'attachment'
+    __table_args__ = {'schema': 'core'}
+
+    id = Column(UUID(as_uuid=True), primary_key=True)
+    path = Column(String)
+    mimetype = Column(String)
+    # Add other fields if needed, but path is critical
+
 
 
 # --- Evaluation Models (Write) ---

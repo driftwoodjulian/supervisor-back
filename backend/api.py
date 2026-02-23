@@ -101,10 +101,51 @@ def get_chat_details(chat_id):
         if i >= transfer_index:
              ui_index = i - transfer_index + 1
 
+        content = m.text or ""
+
+        # [NEW] Image Handling
+        # If message has attachmentId, fetch the path and append reference tag
+        # Use simple query since we are in a loop (optimization: eager load if performance issues arise)
+        if getattr(m, 'attachmentId', None):
+             # We need to use source_session (Postgres) to query Attachment, but we closed it above!
+             # We must keep source_session open or re-open it. 
+             # Re-opening is safer for now to minimise code grouping changes, though inefficient.
+             # Better: Use the `Attachment` model import.
+             from backend.models import Attachment
+             
+             # Re-open session briefly (inefficient but safe)
+             # Actually, let's just do it cleanly: Re-open session once.
+             # OR, we can fetch all attachments in one go before closing session?
+             # Let's adjust the logic to keep session open until after processing.
+             pass
+        
+        # We need to re-structure this function to keep session open.
+        # But `replace_file_content` is limited to a block.
+        # I will do a quick dirty re-open for now or rewrite the block to include session logic if I can.
+        # The surrounding code closes session at line 59.
+        # Accessing `m.text` works because objects are loaded/detached or simple types?
+        # If `m` is detached, `m.attachmentId` is available.
+        # But I can't query `Attachment` without a session.
+        # I will use a local session for this block.
+        
+        attachment_path = None
+        if getattr(m, 'attachmentId', None):
+             local_session = SourceSessionLocal()
+             from backend.models import Attachment
+             try:
+                 att = local_session.query(Attachment).filter(Attachment.id == m.attachmentId).first()
+                 if att and att.path:
+                     attachment_path = att.path
+             finally:
+                 local_session.close()
+        
+        if attachment_path:
+             content += f"\n[IMAGE_REF: {attachment_path}]"
+
         formatted_messages.append({
             "index": ui_index, # None if pre-transfer, 1..N if post-transfer
             "role": role,
-            "content": m.text,
+            "content": content,
             "created_at": m.createdAt.isoformat() if m.createdAt else None,
             "author_name": author_data.get('pushName') if isinstance(author_data, dict) else author_data
         })
@@ -351,6 +392,8 @@ def get_curation_chats():
     from backend.ai_client import AIClient
     from sqlalchemy import desc
     import json
+    # Import Attachment model locally to avoid circular imports if any, or ensures it's available
+    from backend.models import Attachment 
     
     # 1. Initialize Read-Only Session
     # Wraps the SourceSessionLocal to enforce immutability
@@ -393,8 +436,43 @@ def get_curation_chats():
                 
                 content = m.text or ""
                 
+                # [NEW] Image Handling
+                # If message has attachmentId, fetch the path and append reference tag
+                if getattr(m, 'attachmentId', None): # Safely access if column exists in mapped model (it does in DB, need to insure model has it)
+                     # Wait, Message model might not have attachmentId defined in models.py yet? 
+                     # Let's check models.py from previous read... It wasn't in the definition I read earlier!
+                     # I need to update Message model first or use getattr fallback if I didn't update it?
+                     # Actually, to use it in query, I should update Message model. 
+                     # But for now let's assume I can query it or if it's missing from model I might have issues.
+                     # Let's quickly verify Message model in previous step... 
+                     # It had: chatId, text, createdAt, author. attachmentId was NOT in the class Message(SourceBase)!
+                     # I MUST UPDATE MESSAGE MODEL TOO. 
+                     # I will add it in this same replacement if possible or separate. 
+                     # Since this is `api.py`, I can't update `models.py` here. 
+                     # I will proceed assuming I will update `models.py` in next step (or previous task step I missed it).
+                     # Actually I missed adding `attachmentId` to `Message` in `models.py`.
+                     # I will do a quick fix to `models.py` via `multi_replace` or just use raw sql here?
+                     # Better to update `models.py`. I will pause this edit and update `models.py` first?
+                     # No, I can't pause mid-tool-call sequence easily without returning.
+                     # I'll rely on `getattr(m, 'attachmentId')` failing/returning None if not in model, 
+                     # BUT SQLAlchemy won't fetch it if not in model.
+                     # So I MUST update `models.py` first. 
+                     
+                     # Wait, I just updated `models.py` to add `Attachment`. 
+                     # I should have added `attachmentId` to `Message` at the same time.
+                     # I will assume I can do another tool call relative to `models.py` immediately.
+                     pass
+
+                # Re-do logic assuming models are correct:
+                # We need to manually fetch attachment if we don't have a relationship
+                if hasattr(m, 'attachmentId') and m.attachmentId:
+                     att = session.query(Attachment).filter(Attachment.id == m.attachmentId).first()
+                     if att and att.path:
+                         # Append tag
+                         content += f"\n[IMAGE_REF: {att.path}]"
+
+                
                 # We need to construct the dict format AIClient expects
-                # It expects: {'role': '...', 'content': '...', 'timestamp': '...', 'author': ...}
                 history.append({
                     "role": role,
                     "content": content,
@@ -403,7 +481,6 @@ def get_curation_chats():
                 })
             
             # 5. Generate Raw Payload (Context-Faithful)
-            # This reconstructs EXACTLY what the AI would see/saw
             payload = ai_client.build_payload(history)
             
             results.append({
@@ -415,7 +492,6 @@ def get_curation_chats():
         return jsonify(results)
 
     except SecurityAlert as e:
-        # This catch is mainly for testing; in prod it might crash or alert
         print(f"CRITICAL SECURITY ALERT CAUGHT: {e}")
         return jsonify({"error": "Security Violation: Write attempt on Read-Only DB"}), 500
     except Exception as e:

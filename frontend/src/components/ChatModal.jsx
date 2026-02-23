@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Button } from 'react-bootstrap';
 import { getChatDetails } from '../api';
+import DashboardImage from './DashboardImage';
 
 const ChatModal = ({ show, onHide, chatId, initialData }) => {
     const [data, setData] = useState(null);
@@ -21,6 +22,32 @@ const ChatModal = ({ show, onHide, chatId, initialData }) => {
     }, [show, chatId]);
 
     const { reason, improvement, keyMessages } = initialData || {};
+
+    // Helper to check for image tag
+    const renderMessageContent = (content) => {
+        if (!content) return null;
+
+        // Split by lines to handle multiple images or text+image
+        const lines = content.split('\n');
+
+        return lines.map((line, idx) => {
+            const imageRegex = /\[IMAGE_REF:\s*(.*?)\]/;
+            const match = line.match(imageRegex);
+
+            if (match) {
+                const imagePath = match[1];
+                const textContent = line.replace(imageRegex, '').trim();
+
+                return (
+                    <div key={idx}>
+                        {textContent && <div>{textContent}</div>}
+                        <DashboardImage path={imagePath} alt="Chat Attachment" />
+                    </div>
+                );
+            }
+            return <div key={idx}>{line}</div>;
+        });
+    };
 
     return (
         <Modal show={show} onHide={onHide} size="lg" centered>
@@ -111,7 +138,7 @@ const ChatModal = ({ show, onHide, chatId, initialData }) => {
                                                     <span style={{ opacity: 0.6 }}>{new Date(m.created_at).toLocaleTimeString()}</span>
                                                 </div>
                                                 <div className="d-flex justify-content-between">
-                                                    <div className="message-text">{m.content}</div>
+                                                    <div className="message-text">{renderMessageContent(m.content)}</div>
                                                     {msgNum !== null && (
                                                         <div
                                                             className="message-number-badge"

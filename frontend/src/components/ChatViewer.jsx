@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import DashboardImage from './DashboardImage';
 
 const ChatViewer = ({ rawPayload, selectable = false, selectedIndices = [], onToggleMessage }) => {
     const [messages, setMessages] = useState([]);
@@ -46,6 +47,26 @@ const ChatViewer = ({ rawPayload, selectable = false, selectedIndices = [], onTo
         return match ? parseInt(match[1]) : null;
     };
 
+    // Helper to check for image tag
+    const renderLineContent = (line) => {
+        const imageRegex = /\[IMAGE_REF:\s*(.*?)\]/;
+        const match = line.match(imageRegex);
+
+        if (match) {
+            const imagePath = match[1];
+            // Remove the tag from the displayed text
+            const textContent = line.replace(imageRegex, '').trim();
+
+            return (
+                <div>
+                    <div>{textContent}</div>
+                    <DashboardImage path={imagePath} alt="Transcript Image" />
+                </div>
+            );
+        }
+        return line;
+    };
+
     return (
         <div className="chat-viewer h-100 d-flex flex-column" style={{ background: '#050505', border: '1px solid #00ff41', color: '#00ff41', fontFamily: 'monospace' }}>
             <div className="p-3 border-bottom border-success">
@@ -84,7 +105,7 @@ const ChatViewer = ({ rawPayload, selectable = false, selectedIndices = [], onTo
                                     className="text-wrap"
                                     title={canSelect ? `Toggle Message #${msgIndex}` : ''}
                                 >
-                                    {line}
+                                    {renderLineContent(line)}
                                 </div>
                             );
                         })}
