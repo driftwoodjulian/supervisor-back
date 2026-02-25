@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, DateTime, JSON, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
-from backend.database import SourceBase, EvalBase
+from backend.database import SourceBase, EvalBase, HitlEvalBase
 import uuid
 import datetime
 
@@ -57,6 +57,17 @@ class Attachment(SourceBase):
 
 class Evaluation(EvalBase):
     __tablename__ = 'evaluations'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    chat_id = Column(Integer, unique=True, nullable=False) # Maps to Chat.id
+    score = Column(String, nullable=False) # horrible, bad, neutral, good, great
+    reason = Column(String(500), nullable=False)
+    improvement = Column(String(800), nullable=False)
+    key_messages = Column(JSON, nullable=True) # List of message indices/IDs
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+class HitlEvaluation(HitlEvalBase):
+    __tablename__ = 'hitl_evaluations'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     chat_id = Column(Integer, unique=True, nullable=False) # Maps to Chat.id

@@ -10,7 +10,7 @@ class TestPhase4(unittest.TestCase):
         self.app = app.test_client()
         self.app.testing = True
 
-    @patch('backend.database.EvalSession')
+    @patch('backend.database.HitlEvalSession')
     @patch('backend.api.jwt.decode')
     def test_submit_success(self, mock_jwt, mock_session_cls):
         # Mock Auth
@@ -41,7 +41,7 @@ class TestPhase4(unittest.TestCase):
         mock_session.add.assert_called_once()
         mock_session.commit.assert_called_once()
 
-    @patch('backend.database.EvalSession')
+    @patch('backend.database.HitlEvalSession')
     @patch('backend.api.jwt.decode')
     def test_submit_validation_fail(self, mock_jwt, mock_session_cls):
         # Mock Auth

@@ -12,8 +12,8 @@ class ScoreEnum(str, Enum):
 class EvaluationSubmission(BaseModel):
     chat_id: int
     score: ScoreEnum
-    reason: str = Field(..., max_length=500, description="Spanish text explaining the choice.")
-    improvement: str = Field(..., min_length=10, max_length=1000, description="Spanish text on how the operator can improve.")
+    reason: str = Field(default="", max_length=500, description="Spanish text explaining the choice.")
+    improvement: str = Field(default="", max_length=1000, description="Spanish text on how the operator can improve.")
     key_messages: Optional[List[int]] = Field(default=[], description="Indices of Support Agent messages that directly triggered this score.")
 
     @field_validator('key_messages')

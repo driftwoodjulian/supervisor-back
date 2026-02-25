@@ -9,8 +9,8 @@ const EvaluationForm = ({ onSubmit, loading, selectedMessagesCount }) => {
     const [touched, setTouched] = useState(false);
 
     // Validation
-    const isReasonValid = reason.length > 0 && reason.length <= 500;
-    const isImprovementValid = improvement.length >= 10 && improvement.length <= 1000;
+    const isReasonValid = reason.length <= 500;
+    const isImprovementValid = improvement.length <= 1000;
     const isKeyMessagesValid = (score === 'Bad' || score === 'Horrible') ? selectedMessagesCount > 0 : true;
 
     const isValid = score && isReasonValid && isImprovementValid && isKeyMessagesValid;
@@ -19,7 +19,7 @@ const EvaluationForm = ({ onSubmit, loading, selectedMessagesCount }) => {
         e.preventDefault();
         setTouched(true);
         if (isValid) {
-            onSubmit({ score, reason, improvement });
+            onSubmit({ score: score.toLowerCase(), reason, improvement });
         }
     };
 
@@ -57,9 +57,9 @@ const EvaluationForm = ({ onSubmit, loading, selectedMessagesCount }) => {
                     value={reason}
                     onChange={e => setReason(e.target.value)}
                     maxLength={500}
-                    placeholder="Explain the score (Spanish)..."
+                    placeholder="Explain the score (Spanish optionally)..."
                 />
-                {touched && !isReasonValid && <div className="text-danger small mt-1">Reason is required (max 500 chars).</div>}
+                {touched && !isReasonValid && <div className="text-danger small mt-1">Reason cannot exceed 500 chars.</div>}
             </div>
 
             {/* Improvement */}
@@ -73,9 +73,9 @@ const EvaluationForm = ({ onSubmit, loading, selectedMessagesCount }) => {
                     value={improvement}
                     onChange={e => setImprovement(e.target.value)}
                     maxLength={1000}
-                    placeholder="How can the agent improve? (Spanish, min 10 chars)..."
+                    placeholder="How can the agent improve? (Spanish optionally)..."
                 />
-                {touched && !isImprovementValid && <div className="text-danger small mt-1">Improvement is required (10-1000 chars).</div>}
+                {touched && !isImprovementValid && <div className="text-danger small mt-1">Improvement cannot exceed 1000 chars.</div>}
             </div>
 
             {/* Key Messages Validation Info */}

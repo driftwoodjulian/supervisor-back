@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request, make_response
 from flask_cors import CORS
-from backend.database import EvalSession, SourceSession, init_db, SessionLocal, SourceSessionLocal
-from backend.models import Evaluation, Chat, User, Account, Message
+from backend.database import EvalSession, HitlEvalSession, SourceSession, init_db, SessionLocal, SourceSessionLocal
+from backend.models import Evaluation, HitlEvaluation, Chat, User, Account, Message
 import os
 import jwt
 import datetime
@@ -248,7 +248,7 @@ def get_model_status():
 @app.route('/api/stats/agents', methods=['GET'])
 @token_required
 def get_agent_stats():
-    eval_session = SessionLocal()
+    eval_session = EvalSession()
     source_session = SourceSessionLocal()
 
     try:
@@ -504,7 +504,7 @@ def get_curation_chats():
 @token_required
 def submit_curation():
     from backend.schemas import EvaluationSubmission
-    from backend.database import EvalSession
+    from backend.database import HitlEvalSession
     import json
     
     try:
@@ -513,14 +513,14 @@ def submit_curation():
         submission = EvaluationSubmission(**data)
         
         # 2. Save to DB
-        session = EvalSession()
+        session = HitlEvalSession()
         try:
             # Check if already evaluated? (Optional constraints, but good practice)
-            # existing = session.query(Evaluation).filter_by(chat_id=submission.chat_id).first()
+            # existing = session.query(HitlEvaluation).filter_by(chat_id=submission.chat_id).first()
             # if existing: return jsonify({"error": "Already evaluated"}), 409
 
             # Create Evaluation Record
-            eval_record = Evaluation(
+            eval_record = HitlEvaluation(
                 chat_id=submission.chat_id,
                 score=submission.score.value, # Enum to string
                 reason=submission.reason,
