@@ -8,3 +8,4 @@ venv/
 evaluations.db
 __pycache__/
 *.pyc
+config.db

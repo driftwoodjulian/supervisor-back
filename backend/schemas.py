@@ -33,3 +33,21 @@ class ChatCurationResponse(BaseModel):
     id: int
     finished_at: Optional[str] # ISO format
     raw_payload: str # The exact text sent to AI
+
+class ConfigItemCreate(BaseModel):
+    title: str = Field(..., min_length=1, max_length=100)
+    content: str = Field(..., min_length=1)
+
+class ConfigItemResponse(BaseModel):
+    id: int
+    title: str
+    content: str # Will be decrypted when sending out
+    created_at: str
+
+class ActiveConfigUpdate(BaseModel):
+    active_prompt_id: Optional[int]
+    active_manual_id: Optional[int]
+
+class ActiveConfigResponse(BaseModel):
+    active_prompt_id: Optional[int]
+    active_manual_id: Optional[int]

@@ -23,9 +23,16 @@ hitl_eval_engine = create_engine(HITL_EVAL_DB_URI)
 HitlEvalSession = scoped_session(sessionmaker(bind=hitl_eval_engine))
 HitlEvalBase = declarative_base()
 
+# Configuration DB (SQLite) - Isolated Prompts & Manuals
+CONFIG_DB_URI = os.getenv("CONFIG_DB_URI", "sqlite:///config.db")
+config_engine = create_engine(CONFIG_DB_URI)
+ConfigSession = scoped_session(sessionmaker(bind=config_engine))
+ConfigBase = declarative_base()
+
 def init_db():
     EvalBase.metadata.create_all(eval_engine)
     HitlEvalBase.metadata.create_all(hitl_eval_engine)
+    ConfigBase.metadata.create_all(config_engine)
 
 SessionLocal = EvalSession
 engine = eval_engine

@@ -14,18 +14,18 @@ class AIClient:
         self.simulate = os.getenv("SIMULATE_AI", "False").lower() == "true"
         self.model_name = "supervisor-ai"
 
-        # Load Quality Manual
+        # Fallback Quality Manual
         try:
-            # Assumes backend/ai_client.py -> parent is backend -> parent is root
             base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
             manual_path = os.path.join(base_dir, 'manual.txt')
             with open(manual_path, 'r', encoding='utf-8') as f:
-                manual_content = f.read()
+                self.fallback_manual = f.read()
         except Exception as e:
-            print(f"Warning: Could not load manual.txt: {e}")
-            manual_content = ""
+            print(f"Warning: Could not load fallback manual.txt: {e}")
+            self.fallback_manual = ""
 
-        self.system_prompt = (
+        # Fallback System Prompt
+        self.fallback_prompt = (
             "You are a B2C/B2B satisfaction expert. Evaluate the support agent's performance.\n"
             "- OUTPUT: Strictly a valid JSON object.\n"
             "- SCORE: Must be EXACTLY ONE of: 'horrible', 'bad', 'neutral', 'good', 'great'.\n"
@@ -39,10 +39,32 @@ class AIClient:
             "  \"key_messages\": [int, int] // INDICES of Support Agent messages that directly TRIGGERED this score.\n"
             "  // CRITICAL: If score is 'bad' or 'horrible', 'key_messages' MUST contain at least one message index.\n"
             "  // IMPORTANT: The indices must point to lines where the sender is explicitly the Support Agent (NOT the User).\n"
-            "}\n\n"
-            "### QUALITY MANUAL / GUIDELINES\n"
-            f"{manual_content}\n"
+            "}\n"
         )
+
+    def _get_active_config(self):
+        from backend.database import ConfigSession
+        from backend.models import ActiveConfig, SystemPrompt, Manual
+        from backend.encryption import decrypt_text
+        
+        session = ConfigSession()
+        prompt_content = self.fallback_prompt
+        manual_content = self.fallback_manual
+        try:
+            active = session.query(ActiveConfig).filter_by(id=1).first()
+            if active:
+                if active.active_prompt_id:
+                    ap = session.query(SystemPrompt).get(active.active_prompt_id)
+                    if ap: prompt_content = decrypt_text(ap.content)
+                if active.active_manual_id:
+                    am = session.query(Manual).get(active.active_manual_id)
+                    if am: manual_content = decrypt_text(am.content)
+        except Exception as e:
+            print(f"Error fetching active config: {e}")
+        finally:
+            session.close()
+            
+        return prompt_content, manual_content
 
     def _resolve_connection(self):
         """
@@ -98,12 +120,23 @@ class AIClient:
         # For curation, we might want to know which model *was* used, but here we just show
         # what *would* be sent now. 
         # Actually, for curation of *past* chats, we might stick to a standard format.
+        # Resolve active connection
         _, model_name = self._resolve_connection() # Default to current active or safe default
+
+        # Fetch Dynamic Configurations
+        active_sys_prompt, active_manual = self._get_active_config()
+        
+        # Combine them into the final system role message
+        final_system_content = f"{active_sys_prompt}\n\n### QUALITY MANUAL / GUIDELINES\n{active_manual}\n"
 
         payload = {
             "model": model_name,
+            # Including these fields explicitly as requested by Prompt 6 Validation Protocols
+            "active_system_prompt": active_sys_prompt,
+            "active_manual_context": active_manual,
+            "user_query": formatted_conversation,
             "messages": [
-                {"role": "system", "content": self.system_prompt},
+                {"role": "system", "content": final_system_content},
                 {"role": "user", "content": formatted_conversation}
             ],
             "temperature": 0.0,
@@ -115,7 +148,7 @@ class AIClient:
         MAX_INPUT_TOKENS = TOTAL_CTX_LIMIT - payload["max_tokens"] - 200 # Buffer
         
         # Estimate current input
-        current_input_text = self.system_prompt + formatted_conversation
+        current_input_text = final_system_content + formatted_conversation
         estimated_tokens = self._estimate_tokens(current_input_text)
         
         # Truncate if necessary
@@ -124,10 +157,11 @@ class AIClient:
             while estimated_tokens > MAX_INPUT_TOKENS and len(history) > 1:
                 history.pop(0) # Remove oldest
                 formatted_conversation = self._format_conversation_with_time(history)
-                current_input_text = self.system_prompt + formatted_conversation
+                current_input_text = final_system_content + formatted_conversation
                 estimated_tokens = self._estimate_tokens(current_input_text)
             
             # Update payload content
+            payload["user_query"] = formatted_conversation
             payload["messages"][1]["content"] = formatted_conversation
             
         return payload

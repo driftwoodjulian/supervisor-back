@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request, make_response
 from flask_cors import CORS
-from backend.database import EvalSession, HitlEvalSession, SourceSession, init_db, SessionLocal, SourceSessionLocal
-from backend.models import Evaluation, HitlEvaluation, Chat, User, Account, Message
+from backend.database import EvalSession, HitlEvalSession, ConfigSession, SourceSession, init_db, SessionLocal, SourceSessionLocal
+from backend.models import Evaluation, HitlEvaluation, SystemPrompt, Manual, ActiveConfig, Chat, User, Account, Message
 import os
 import jwt
 import datetime
@@ -549,6 +549,121 @@ def submit_curation():
     except Exception as e:
         print(f"Submission Error: {e}")
         return jsonify({"error": str(e)}), 500
+
+
+# --- Configuration Management Routes ---
+
+@app.route('/api/config/prompts', methods=['GET', 'POST'])
+@token_required
+def handle_prompts():
+    from backend.encryption import encrypt_text, decrypt_text
+    from backend.schemas import ConfigItemCreate
+    session = ConfigSession()
+    try:
+        if request.method == 'GET':
+            prompts = session.query(SystemPrompt).order_by(SystemPrompt.created_at.desc()).all()
+            result = []
+            for p in prompts:
+                result.append({
+                    "id": p.id,
+                    "title": p.title,
+                    "content": decrypt_text(p.content),
+                    "created_at": p.created_at.isoformat() + "Z" if p.created_at else None
+                })
+            return jsonify(result)
+        
+        elif request.method == 'POST':
+            data = request.json
+            item = ConfigItemCreate(**data)
+            
+            new_prompt = SystemPrompt(
+                title=item.title,
+                content=encrypt_text(item.content),
+                created_at=datetime.datetime.utcnow()
+            )
+            session.add(new_prompt)
+            session.commit()
+            return jsonify({"status": "success", "id": new_prompt.id}), 201
+            
+    except Exception as e:
+        session.rollback()
+        return jsonify({"error": str(e)}), 500
+    finally:
+        session.close()
+
+@app.route('/api/config/manuals', methods=['GET', 'POST'])
+@token_required
+def handle_manuals():
+    from backend.encryption import encrypt_text, decrypt_text
+    from backend.schemas import ConfigItemCreate
+    session = ConfigSession()
+    try:
+        if request.method == 'GET':
+            manuals = session.query(Manual).order_by(Manual.created_at.desc()).all()
+            result = []
+            for m in manuals:
+                result.append({
+                    "id": m.id,
+                    "title": m.title,
+                    "content": decrypt_text(m.content),
+                    "created_at": m.created_at.isoformat() + "Z" if m.created_at else None
+                })
+            return jsonify(result)
+        
+        elif request.method == 'POST':
+            data = request.json
+            item = ConfigItemCreate(**data)
+            
+            new_manual = Manual(
+                title=item.title,
+                content=encrypt_text(item.content),
+                created_at=datetime.datetime.utcnow()
+            )
+            session.add(new_manual)
+            session.commit()
+            return jsonify({"status": "success", "id": new_manual.id}), 201
+            
+    except Exception as e:
+        session.rollback()
+        return jsonify({"error": str(e)}), 500
+    finally:
+        session.close()
+
+@app.route('/api/config/active', methods=['GET', 'PUT'])
+@token_required
+def handle_active_config():
+    from backend.schemas import ActiveConfigUpdate
+    session = ConfigSession()
+    try:
+        active = session.query(ActiveConfig).filter_by(id=1).first()
+        
+        if request.method == 'GET':
+            if not active:
+                return jsonify({"active_prompt_id": None, "active_manual_id": None})
+            return jsonify({
+                "active_prompt_id": active.active_prompt_id,
+                "active_manual_id": active.active_manual_id
+            })
+            
+        elif request.method == 'PUT':
+            data = request.json
+            update_data = ActiveConfigUpdate(**data)
+            
+            if not active:
+                active = ActiveConfig(id=1, active_prompt_id=update_data.active_prompt_id, active_manual_id=update_data.active_manual_id)
+                session.add(active)
+            else:
+                active.active_prompt_id = update_data.active_prompt_id
+                active.active_manual_id = update_data.active_manual_id
+                
+            session.commit()
+            return jsonify({"status": "success"}), 200
+            
+    except Exception as e:
+        session.rollback()
+        return jsonify({"error": str(e)}), 500
+    finally:
+        session.close()
 
 if __name__ == '__main__':
     init_db()

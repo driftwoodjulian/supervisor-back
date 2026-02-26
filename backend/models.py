@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, DateTime, JSON, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
-from backend.database import SourceBase, EvalBase, HitlEvalBase
+from backend.database import SourceBase, EvalBase, HitlEvalBase, ConfigBase
 import uuid
 import datetime
 
@@ -82,3 +82,25 @@ class User(EvalBase):
     id = Column(Integer, primary_key=True)
     username = Column(String(50), unique=True, nullable=False)
     password_hash = Column(String(200), nullable=False)
+
+# --- Configuration Models (Isolated) ---
+
+class SystemPrompt(ConfigBase):
+    __tablename__ = 'system_prompts'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    title = Column(String(100), nullable=False)
+    content = Column(String, nullable=False) # Encrypted
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+class Manual(ConfigBase):
+    __tablename__ = 'manuals'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    title = Column(String(100), nullable=False)
+    content = Column(String, nullable=False) # Encrypted
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+class ActiveConfig(ConfigBase):
+    __tablename__ = 'active_config'
+    id = Column(Integer, primary_key=True) # Singleton, always 1
+    active_prompt_id = Column(Integer, ForeignKey('system_prompts.id'), nullable=True)
+    active_manual_id = Column(Integer, ForeignKey('manuals.id'), nullable=True)
