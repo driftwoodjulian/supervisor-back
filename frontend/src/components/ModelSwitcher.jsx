@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Badge, Spinner } from 'react-bootstrap';
-import { getModelStatus, switchModel } from '../api';
+import { getModelStatus, switchModel, getAvailableModels } from '../api';
 
 const ModelSwitcher = () => {
     const [status, setStatus] = useState({ model: 'unknown', status: 'unknown' });
+    const [availableModels, setAvailableModels] = useState([]);
     const [loading, setLoading] = useState(false);
     const [switching, setSwitching] = useState(false);
 
@@ -20,8 +21,19 @@ const ModelSwitcher = () => {
             .catch(err => console.error("Status fetch error:", err));
     };
 
+    const fetchModels = () => {
+        getAvailableModels()
+            .then(data => {
+                if (data.models) {
+                    setAvailableModels(data.models);
+                }
+            })
+            .catch(err => console.error("Models fetch error:", err));
+    };
+
     useEffect(() => {
         fetchStatus();
+        fetchModels();
         const interval = setInterval(() => {
             // Poll more frequently if in transition
             fetchStatus();
@@ -71,12 +83,16 @@ const ModelSwitcher = () => {
                         boxShadow: status.status === 'active' ? '0 0 5px rgba(0, 255, 65, 0.3)' : 'none',
                         color: status.status === 'active' ? '#00ff41 !important' : '#17a2b8 !important'
                     }}
-                    value={status.model}
+                    value={status.model || ''}
                     onChange={(e) => handleSwitch(e.target.value)}
-                    disabled={switching}
+                    disabled={switching || availableModels.length === 0}
                 >
-                    <option value="gptoss">GPTOSS (Supervisor)</option>
-                    <option value="gemma">Gemma 3</option>
+                    {availableModels.length === 0 && <option value="">Loading...</option>}
+                    {availableModels.map(model => (
+                        <option key={model} value={model}>
+                            {model.toUpperCase()}
+                        </option>
+                    ))}
                 </select>
 
                 {/* Status Indicator Dot */}

@@ -72,3 +72,14 @@ export async function switchModel(modelName) {
     return response.json();
 }
 
+export async function getAvailableModels() {
+    const token = getToken();
+    const response = await fetch(`${GATEWAY_URL}/admin/models`, {
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
+    if (!response.ok) throw new Error('Failed to fetch models');
+    return response.json();
+}
+

@@ -16,26 +16,25 @@ current_state = {
 }
 
 # Configuration
-SCRIPTS = {
-    "gptoss": "./start_gptoss.sh",
-    "gemma": "./start_gemma_ollama.sh",
-    "mock": "./tests/start_mock.sh"
-}
-PORTS = {
-    "gptoss": 8000,
-    "gemma": 11434,
-    "mock": 9090
-}
 PORT = 5002
 # 45 minutes = 2700 seconds. 
 # Loop checks every 2 seconds. 2700 / 2 = 1350 iterations.
 TIMEOUT_ITERATIONS = 1350 
 
+def get_port_for_model(model):
+    if model == "gptoss":
+        return 8000
+    elif model == "mock":
+        return 9090
+    else:
+        # Default for any Ollama model
+        return 11434
+
 def check_service_health(target_model):
     """Try to hit the health/models endpoint."""
     if not target_model: return False
     
-    port = PORTS.get(target_model, 8000)
+    port = get_port_for_model(target_model)
     url = f"http://127.0.0.1:{port}/v1/models"
     try:
         resp = requests.get(url, timeout=2)
@@ -149,14 +148,25 @@ def switch_logic(target_model):
     current_state["model"] = target_model 
     current_state["status"] = "activating"
     
-    script = SCRIPTS.get(target_model)
-    if not script:
-        current_state["status"] = "error_invalid_model"
+    if target_model == "gptoss":
+        script = "./start_gptoss.sh"
+    elif target_model == "mock":
+        script = "./tests/start_mock.sh"
+    else:
+        # Dynamic Ollama script
+        script = "./start_ollama.sh"
+
+    if not os.path.exists(os.path.join(os.path.dirname(__file__), script)):
+        current_state["status"] = "error_missing_script"
         return
 
-    # Start subprocess using manager's stdout/stderr (inherited for tee logging)
+    # Start subprocess
+    args = [script]
+    if script == "./start_ollama.sh":
+        args.append(target_model)
+
     subprocess.Popen(
-        [script], 
+        args, 
         cwd=os.path.dirname(os.path.abspath(__file__)),
         stdout=None, 
         stderr=None, 
@@ -166,17 +176,29 @@ def switch_logic(target_model):
     # 3. Monitor
     threading.Thread(target=monitor_activation, args=(target_model,)).start()
 
+@app.route('/models', methods=['GET'])
+def get_models():
+    """Dynamically get available models from Ollama."""
+    available = ["gptoss"]
+    try:
+        resp = requests.get("http://127.0.0.1:11434/api/tags", timeout=2)
+        if resp.status_code == 200:
+            models = resp.json().get('models', [])
+            for m in models:
+                available.append(m['name'])
+    except Exception as e:
+        print(f"[Manager] Error fetching Ollama models: {e}")
+        # If ollama isn't running, we still return gptoss at least
+    return jsonify({"models": available})
+
 @app.route('/switch', methods=['POST'])
 def switch_model():
     data = request.json
     target = data.get("model")
     
-    if target not in SCRIPTS:
-        return jsonify({"error": "Invalid model"}), 400
+    if not target:
+        return jsonify({"error": "No model specified"}), 400
         
-    # Lock: If already switching, reject? Or allow override?
-    # Prompt says "Implement a singleton controller... wait for kill... then boot".
-    # This implies we can just queue it or reject. Let's reject for simplicity/safety.
     if current_state["status"] == "switching":
          return jsonify({"error": "Busy switching, please wait"}), 429
 
@@ -200,7 +222,7 @@ def get_status():
     # Return current state plus the port if active
     response = current_state.copy()
     if current_state["model"]:
-         response["port"] = PORTS.get(current_state["model"])
+         response["port"] = get_port_for_model(current_state["model"])
          
     return jsonify(response)
 

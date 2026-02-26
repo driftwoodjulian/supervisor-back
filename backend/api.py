@@ -245,6 +245,17 @@ def get_model_status():
     except Exception as e:
         return jsonify({"model": "unknown", "status": "error", "error": str(e)}), 500
 
+@app.route('/api/admin/models', methods=['GET'])
+@token_required
+def get_available_models():
+    try:
+        host = os.getenv('HOST_B_IP', '127.0.0.1')
+        url = f"http://{host}:5002/models"
+        resp = requests.get(url, timeout=5)
+        return jsonify(resp.json()), resp.status_code
+    except Exception as e:
+        return jsonify({"error": f"Failed to contact AI Manager: {str(e)}"}), 500
+
 @app.route('/api/stats/agents', methods=['GET'])
 @token_required
 def get_agent_stats():
