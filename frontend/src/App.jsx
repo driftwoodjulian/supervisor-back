@@ -27,15 +27,19 @@ function App() {
         <CurationDashboard onBack={() => setView('dashboard')} />
       ) : view === 'config' ? (
         <ConfigurationManager onBack={() => setView('dashboard')} />
-      ) : view === 'victor_chat' ? (
-        <VictorChat onBack={() => setView('dashboard')} />
       ) : (
-        <Dashboard
-          onLogout={handleLogout}
-          onNavigateCuration={() => setView('curation')}
-          onNavigateConfig={() => setView('config')}
-          onNavigateVictorChat={() => setView('victor_chat')}
-        />
+        <>
+          <Dashboard
+            onLogout={handleLogout}
+            onNavigateCuration={() => setView('curation')}
+            onNavigateConfig={() => setView('config')}
+            onNavigateVictorChat={() => setView('victor_chat')}
+          />
+          <VictorChat
+            show={view === 'victor_chat'}
+            onHide={() => setView('dashboard')}
+          />
+        </>
       )}
     </div>
   );

@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { Modal, Button } from 'react-bootstrap';
 import { sendVictorMessage } from '../api';
 
-function VictorChat({ onBack }) {
+function VictorChat({ show, onHide }) {
     const [messages, setMessages] = useState([
         { role: 'assistant', content: '¡Hola! Soy Victor, experto en soporte técnico. ¿En qué puedo ayudarte hoy?' }
     ]);
@@ -42,48 +43,51 @@ function VictorChat({ onBack }) {
     };
 
     return (
-        <div className="victor-chat-container">
-            <header className="curation-header">
-                <h2>Chat con Agente Histórico (Victor)</h2>
-                <div className="curation-actions">
-                    <button className="btn back-btn" onClick={onBack}>← Volver al Dashboard</button>
-                </div>
-            </header>
-
-            <div className="chat-window">
-                <div className="messages-area">
-                    {messages.map((msg, idx) => (
-                        <div key={idx} className={`message-bubble-wrapper ${msg.role === 'user' ? 'user' : 'agent'}`}>
-                            <div className={`message-bubble ${msg.role === 'user' ? 'customer-msg' : 'agent-msg'}`}>
-                                <strong>{msg.role === 'user' ? 'Tú' : 'Victor'}</strong>
-                                <p style={{ whiteSpace: 'pre-line', margin: 0 }}>{msg.content}</p>
-                            </div>
+        <Modal show={show} onHide={onHide} size="lg" centered backdrop="static" className="victor-chat-modal">
+            <Modal.Header closeButton className="border-bottom border-success bg-black">
+                <Modal.Title className="text-success" style={{ fontFamily: 'monospace' }}>Chat Autónomo: Victor (Histórico)</Modal.Title>
+            </Modal.Header>
+            <Modal.Body className="bg-black p-0">
+                <div className="victor-chat-container" style={{ height: '600px', padding: 0, marginTop: 0 }}>
+                    <div className="chat-window" style={{ border: 'none', borderRadius: 0, marginTop: 0 }}>
+                        <div className="messages-area">
+                            {messages.map((msg, idx) => (
+                                <div key={idx} className={`message-bubble-wrapper ${msg.role === 'user' ? 'user' : 'agent'}`}>
+                                    <div className={`message-bubble ${msg.role === 'user' ? 'customer-msg' : 'agent-msg'}`}>
+                                        <strong>{msg.role === 'user' ? 'Tú' : 'Victor'}</strong>
+                                        <p style={{ whiteSpace: 'pre-line', margin: 0 }}>{msg.content}</p>
+                                    </div>
+                                </div>
+                            ))}
+                            {isLoading && (
+                                <div className="message-bubble-wrapper agent">
+                                    <div className="message-bubble agent-msg typing-indicator">
+                                        Victor está escribiendo...
+                                    </div>
+                                </div>
+                            )}
+                            <div ref={messagesEndRef} />
                         </div>
-                    ))}
-                    {isLoading && (
-                        <div className="message-bubble-wrapper agent">
-                            <div className="message-bubble agent-msg typing-indicator">
-                                Victor está escribiendo...
-                            </div>
-                        </div>
-                    )}
-                    <div ref={messagesEndRef} />
-                </div>
 
-                <form className="chat-input-area" onSubmit={handleSend}>
-                    <input
-                        type="text"
-                        value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        placeholder="Escribe tu consulta aquí..."
-                        disabled={isLoading}
-                    />
-                    <button type="submit" className="btn action-btn send-btn" disabled={isLoading || !input.trim()}>
-                        Enviar
-                    </button>
-                </form>
-            </div>
-        </div>
+                        <form className="chat-input-area" onSubmit={handleSend}>
+                            <input
+                                type="text"
+                                value={input}
+                                onChange={(e) => setInput(e.target.value)}
+                                placeholder="Escribe tu consulta aquí..."
+                                disabled={isLoading}
+                            />
+                            <button type="submit" className="btn action-btn send-btn" disabled={isLoading || !input.trim()}>
+                                Enviar
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </Modal.Body>
+            <Modal.Footer className="border-top border-success bg-black">
+                <Button variant="secondary" onClick={onHide}>Cerrar Chat</Button>
+            </Modal.Footer>
+        </Modal>
     );
 }
 

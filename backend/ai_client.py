@@ -262,6 +262,64 @@ class AIClient:
                 "key_messages": []
             }
 
+    def chat_as_victor(self, query, history):
+        """
+        Interactive endpoint to chat with the AI explicitly as Victor.
+        History format: [{"role": "user"|"assistant", "content": "..."}]
+        """
+        if self.simulate:
+            return "Simulated Victor Response: Por favor revise su bandeja de entrada en unos instantes."
+
+        base_url, model_name = self._resolve_connection()
+        
+        # 1. Fetch Victor Context from ChromaDB
+        rag_context = ""
+        try:
+            from backend.vector_store import search_victor
+            victor_results = search_victor(query, n_results=3)
+            if victor_results and victor_results['documents'] and victor_results['documents'][0]:
+                rag_context = "\n".join([f"User: {doc}\nVictor: {meta['answer']}" for doc, meta in zip(victor_results['documents'][0], victor_results['metadatas'][0])])
+        except Exception as e:
+            print(f"Failed to fetch Victor context: {e}")
+
+        # 2. Build Prompt
+        system_prompt = (
+            "You are Victor, an elite technical support agent. You speak ONLY in Spanish.\n"
+            "You are helpful, concise, and professional.\n"
+            "Here are examples of how you have solved similar problems in the past (use these to inform your tone and technical answers):\n\n"
+            f"### PAST CHATS ###\n{rag_context}\n\n"
+            "Answer the user's latest message naturally."
+        )
+
+        messages = [{"role": "system", "content": system_prompt}]
+        messages.extend(history[-10:]) # Keep last 10 messages for conversational context
+        messages.append({"role": "user", "content": query})
+
+        payload = {
+            "model": model_name,
+            "messages": messages,
+            "temperature": 0.3, # Slightly creative but consistent
+            "max_tokens": 1024
+        }
+        
+        try:
+            print(f"Sending Victor Chat request to AI Host: {base_url}")
+            response = requests.post(f"{base_url}/chat/completions", json=payload)
+            response.raise_for_status()
+            result = response.json()
+            
+            msg = result["choices"][0]["message"]
+            content = msg.get("content") or msg.get("reasoning_content") or ""
+            
+            # Clean think blocks if present
+            if "<think>" in content and "</think>" in content:
+                content = content.split("</think>")[-1].strip()
+                
+            return content
+        except Exception as e:
+            print(f"Victor Chat Error: {e}")
+            return "Disculpe, en este momento estoy experimentando un inconveniente técnico para procesar su consulta. Por favor intente en unos minutos."
+
     def _estimate_tokens(self, text):
         """
         Rough token estimation. Safe replacement for len(text)/4.

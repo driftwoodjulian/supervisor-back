@@ -558,9 +558,29 @@ def submit_curation():
     except ValueError as e:
         return jsonify({"error": str(e), "details": "Validation Failed"}), 400
     except Exception as e:
-        print(f"Submission Error: {e}")
         return jsonify({"error": str(e)}), 500
 
+# --- Victor Interactive Chat Route ---
+
+@app.route('/api/victor_chat', methods=['POST'])
+@token_required
+def chat_with_victor():
+    from backend.ai_client import AIClient
+    try:
+        data = request.json
+        query = data.get('message', '')
+        history = data.get('history', []) # Format: [{"role": "user"|"assistant", "content": "..."}]
+        
+        if not query:
+             return jsonify({"error": "Message is required"}), 400
+             
+        client = AIClient()
+        response_text = client.chat_as_victor(query, history)
+        
+        return jsonify({"response": response_text})
+    except Exception as e:
+         print(f"Victor Chat Route Error: {e}")
+         return jsonify({"error": "Failed to communicate with Victor AI"}), 500
 
 # --- Configuration Management Routes ---
 
