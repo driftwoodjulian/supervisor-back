@@ -83,3 +83,17 @@ export async function getAvailableModels() {
     return response.json();
 }
 
+export async function sendVictorMessage(query, history) {
+    const token = getToken();
+    const response = await fetch(`${GATEWAY_URL}/victor_chat`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ message: query, history })
+    });
+    if (!response.ok) throw new Error('Failed to communicate with Victor');
+    return response.json();
+}
+

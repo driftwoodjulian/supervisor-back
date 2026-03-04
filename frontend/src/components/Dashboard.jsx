@@ -6,7 +6,7 @@ import ModelSwitcher from './ModelSwitcher';
 import ChatModal from './ChatModal';
 import AgentStatsModal from './AgentStatsModal';
 
-const Dashboard = ({ onLogout, onNavigateCuration, onNavigateConfig }) => {
+const Dashboard = ({ onLogout, onNavigateCuration, onNavigateConfig, onNavigateVictorChat }) => {
     const [evals, setEvals] = useState([]);
     const [modalState, setModalState] = useState({ show: false, chatId: null, data: {} });
     const [showStats, setShowStats] = useState(false);
@@ -86,6 +86,16 @@ const Dashboard = ({ onLogout, onNavigateCuration, onNavigateConfig }) => {
                         >
                             <svg viewBox="0 0 16 16" fill="currentColor" style={{ fill: 'currentColor' }} xmlns="http://www.w3.org/2000/svg">
                                 <path fillRule="evenodd" d="M5 11.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zM3.854 2.146a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0l-.5-.5a.5.5 0 1 1 .708-.708l.146.147 1.146-1.147a.5.5 0 0 1 .708 0zm0 4a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0l-.5-.5a.5.5 0 1 1 .708-.708l.146.147 1.146-1.147a.5.5 0 0 1 .708 0zm0 4a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0l-.5-.5a.5.5 0 0 1 .708-.708l.146.147 1.146-1.147a.5.5 0 0 1 .708 0z" />
+                            </svg>
+                        </button>
+                        <button
+                            onClick={onNavigateVictorChat}
+                            className="btn btn-icon"
+                            title="Chat with Victor (AI)"
+                            style={{ borderColor: '#ff00ff', color: '#ff00ff' }} // Magenta for AI Chat
+                        >
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
                         </button>
                         <button

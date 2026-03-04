@@ -3,11 +3,12 @@ import Login from './components/Login';
 import CurationDashboard from './components/CurationDashboard';
 import Dashboard from './components/Dashboard';
 import ConfigurationManager from './components/ConfigurationManager';
+import VictorChat from './components/VictorChat';
 import { isAuthenticated } from './auth';
 
 function App() {
   const [isAuth, setIsAuth] = useState(isAuthenticated());
-  const [view, setView] = useState('dashboard'); // 'dashboard' | 'curation' | 'config'
+  const [view, setView] = useState('dashboard'); // 'dashboard' | 'curation' | 'config' | 'victor_chat'
 
   const handleLoginSuccess = () => {
     setIsAuth(true);
@@ -26,11 +27,14 @@ function App() {
         <CurationDashboard onBack={() => setView('dashboard')} />
       ) : view === 'config' ? (
         <ConfigurationManager onBack={() => setView('dashboard')} />
+      ) : view === 'victor_chat' ? (
+        <VictorChat onBack={() => setView('dashboard')} />
       ) : (
         <Dashboard
           onLogout={handleLogout}
           onNavigateCuration={() => setView('curation')}
           onNavigateConfig={() => setView('config')}
+          onNavigateVictorChat={() => setView('victor_chat')}
         />
       )}
     </div>
