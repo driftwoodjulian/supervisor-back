@@ -126,6 +126,28 @@ class AIClient:
         # Fetch Dynamic Configurations
         active_sys_prompt, active_manual = self._get_active_config()
         
+        # --- RAG INJECTION: Extract user issue & Search Victor's DB ---
+        user_issue = ""
+        for m in history:
+            if isinstance(m, dict) and m.get("role") == "user":
+                user_issue += m.get("content", "") + " "
+                if len(user_issue) > 150: 
+                    break
+        
+        if user_issue.strip():
+            try:
+                from backend.vector_store import search_victor
+                victor_results = search_victor(user_issue.strip(), n_results=2)
+                if victor_results and victor_results['documents'] and victor_results['documents'][0]:
+                    active_manual += "\n\n### HISTORICAL EXPERT BEHAVIOR (VICTOR'S PREVIOUS CHATS) ###\n"
+                    active_manual += "The following are historical examples of how our best expert agent answered similar questions. Use them as the gold standard to evaluate the current agent's performance:\n\n"
+                    for doc, meta in zip(victor_results['documents'][0], victor_results['metadatas'][0]):
+                        active_manual += f"**Customer Issue**: {doc}\n"
+                        active_manual += f"**Expert Agent Answer**: {meta['answer']}\n\n"
+            except Exception as e:
+                print(f"Warning: Failed to inject Victor's RAG context: {e}")
+        # -------------------------------------------------------------
+        
         # Combine them into the final system role message
         final_system_content = f"{active_sys_prompt}\n\n### QUALITY MANUAL / GUIDELINES\n{active_manual}\n"
 
