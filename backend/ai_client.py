@@ -262,7 +262,7 @@ class AIClient:
                 "key_messages": []
             }
 
-    def chat_as_victor(self, query, history):
+    def chat_as_victor(self, query, history, domain_context=None):
         """
         Interactive endpoint to chat with the AI explicitly as Victor.
         History format: [{"role": "user"|"assistant", "content": "..."}]
@@ -286,6 +286,22 @@ class AIClient:
         system_prompt = (
             "You are Victor, an elite technical support agent. You speak ONLY in Spanish.\n"
             "You are helpful, concise, and professional.\n"
+        )
+        
+        if domain_context:
+            system_prompt += (
+                f"\n--- CLIENT CONTEXT ---\n"
+                f"You are talking to the owner of: {domain_context.get('domain', 'Unknown')}\n"
+                f"Client Name: {domain_context.get('owner_name', 'Unknown')}\n"
+                f"Hosting Plan: {domain_context.get('plan_name', 'Unknown')}\n"
+                f"Server Location: {domain_context.get('server', 'Unknown')}\n"
+                f"Account Status: {domain_context.get('status', 'Unknown')}\n"
+                f"Debit Active: {'Yes' if domain_context.get('debit_active') else 'No'}\n"
+                "Use this information directly to assist the client but do not recite it back unless relevant to their query.\n"
+                "----------------------\n\n"
+            )
+
+        system_prompt += (
             "Here are examples of how you have solved similar problems in the past (use these to inform your tone and technical answers):\n\n"
             f"### PAST CHATS ###\n{rag_context}\n\n"
             "Answer the user's latest message naturally."

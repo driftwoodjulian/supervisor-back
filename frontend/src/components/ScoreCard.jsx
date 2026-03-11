@@ -24,16 +24,33 @@ const ScoreCard = ({ item, onViewDetails }) => {
     return (
         <div className="score-card">
             <span className={`score-badge ${scoreClass}`}>{score}</span>
-            <div className="d-flex justify-content-between align-items-center mb-1">
-                <div className="chat-id">Chat #{item.chat_id}</div>
-                <small style={{ fontSize: '0.75rem', color: '#00ff41', opacity: 0.7 }}>{dateStr}</small>
+            <div className="d-flex justify-content-between align-items-start mb-2">
+                <div className="chat-info" style={{ overflow: 'hidden', paddingRight: '8px' }}>
+                    <div
+                        className="chat-id"
+                        style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                        title={item.display_name && item.display_name !== item.chat_id ? `${item.display_name} #${item.chat_id}` : `Chat #${item.chat_id}`}
+                    >
+                        {item.display_name && item.display_name !== item.chat_id ? item.display_name : `Chat #${item.chat_id}`}
+                        {item.display_name && item.display_name !== item.chat_id && <span style={{ marginLeft: '6px', fontSize: '0.8rem', color: '#aaa', fontWeight: 'normal' }}>#{item.chat_id}</span>}
+                    </div>
+                    {item.agent_name && (
+                        <div
+                            style={{ fontSize: '0.8rem', color: '#00ff41', opacity: 0.8, marginTop: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                            title={`Agent: ${item.agent_name}`}
+                        >
+                            Agent: {item.agent_name}
+                        </div>
+                    )}
+                </div>
+                <small style={{ fontSize: '0.75rem', color: '#00ff41', opacity: 0.7, whiteSpace: 'nowrap', flexShrink: 0 }}>{dateStr}</small>
             </div>
 
             <div className="chat-reason" style={{ height: '60px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {reason}
             </div>
             <button
-                className="btn btn-primary w-100 btn-sm"
+                className="btn btn-primary w-100 btn-sm mt-2"
                 onClick={() => onViewDetails(item.chat_id, reason, improvement, keyMessages)}
             >
                 View Transcript

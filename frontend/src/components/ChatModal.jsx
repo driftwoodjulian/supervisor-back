@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Modal, Button } from 'react-bootstrap';
-import { getChatDetails } from '../api';
+import React, { useState, useEffect, useRef } from 'react';
+import { Modal, Button, Spinner } from 'react-bootstrap';
+import { getChatDetails, sendVictorMessage } from '../api';
 import DashboardImage from './DashboardImage';
 
 const ChatModal = ({ show, onHide, chatId, initialData }) => {
@@ -8,20 +8,62 @@ const ChatModal = ({ show, onHide, chatId, initialData }) => {
     const [loading, setLoading] = useState(false);
     const [highlightedMsgId, setHighlightedMsgId] = useState(null);
 
+    // Simulation state
+    const [victorResponse, setVictorResponse] = useState(null);
+    const [victorLoading, setVictorLoading] = useState(false);
+    const messagesEndRef = useRef(null);
+
+    const { reason, improvement, keyMessages } = initialData || {};
+
     useEffect(() => {
         if (show && chatId) {
             setLoading(true);
-            setHighlightedMsgId(null); // Reset highlight on new open
+            setHighlightedMsgId(null);
+            setVictorResponse(null);
+            setVictorLoading(false);
+
             getChatDetails(chatId)
-                .then(setData)
+                .then(chatData => {
+                    setData(chatData);
+
+                    // Always trigger simulation when opening the modal
+                    if (chatData && chatData.messages && chatData.messages.length > 0) {
+                        const messages = chatData.messages;
+                        const lastMsg = messages[messages.length - 1];
+
+                        if (lastMsg.role === 'customer' || lastMsg.role === 'user') {
+                            setVictorLoading(true);
+
+                            // Map history for Victor
+                            const mappedHistory = messages.map(m => ({
+                                role: (m.role === 'customer' || m.role === 'user') ? 'user' : 'assistant',
+                                content: m.content
+                            }));
+                            const contextHistory = mappedHistory.slice(0, mappedHistory.length - 1);
+                            const query = lastMsg.content;
+                            const mockDomainContext = { domain: 'Simulated Context', server: 'N/A', plan_name: 'Simulation', status: 'Activo' };
+
+                            sendVictorMessage(query, contextHistory, mockDomainContext)
+                                .then(res => setVictorResponse(res.response))
+                                .catch(err => {
+                                    console.error("Simulation error: ", err);
+                                    setVictorResponse("Error al simular la respuesta.");
+                                })
+                                .finally(() => {
+                                    setVictorLoading(false);
+                                    setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
+                                });
+                        }
+                    }
+                })
                 .catch(err => console.error("Failed to load details: ", err))
                 .finally(() => setLoading(false));
         } else {
             setData(null);
+            setVictorResponse(null);
+            setVictorLoading(false);
         }
     }, [show, chatId]);
-
-    const { reason, improvement, keyMessages } = initialData || {};
 
     // Helper to check for image tag
     const renderMessageContent = (content) => {
@@ -157,6 +199,38 @@ const ChatModal = ({ show, onHide, chatId, initialData }) => {
                                             </div>
                                         );
                                     })}
+
+                                    {/* Victor AI Simulation Block */}
+                                    {(victorLoading || victorResponse) && (
+                                        <div className="mt-4 pt-3 border-top" style={{ borderColor: 'rgba(255, 140, 0, 0.3) !important' }}>
+                                            <div className="message-header mb-2 d-flex align-items-center gap-2">
+                                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color: '#FF8C00' }}>
+                                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                                </svg>
+                                                <span style={{ color: '#FF8C00', fontWeight: 'bold' }}>Victor (Suggested Response)</span>
+                                            </div>
+
+                                            {victorLoading ? (
+                                                <div className="d-flex align-items-center gap-2" style={{ color: '#FF8C00', opacity: 0.8 }}>
+                                                    <Spinner animation="grow" size="sm" variant="warning" />
+                                                    <span style={{ fontStyle: 'italic', fontSize: '0.9rem' }}>Victor está analizando y escribiendo...</span>
+                                                </div>
+                                            ) : (
+                                                <div
+                                                    className="p-3 rounded"
+                                                    style={{
+                                                        backgroundColor: 'rgba(255, 140, 0, 0.1)',
+                                                        border: '1px solid #FF8C00',
+                                                        color: '#FF8C00',
+                                                        whiteSpace: 'pre-line'
+                                                    }}
+                                                >
+                                                    {victorResponse}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                    <div ref={messagesEndRef} />
                                 </div>
                             </div>
                         )}

@@ -206,14 +206,31 @@ def get_evaluations():
             .order_by(Evaluation.created_at.desc())\
             .limit(50).all()
             
+        # [NEW] Fetch Chat and Agent details for the payload
+        chat_details = source_session.query(Chat).filter(Chat.id.in_(open_chat_ids)).all()
+        chat_map = {c.id: {'display_name': c.displayName, 'agent_id': c.assignedToId} for c in chat_details}
+        
+        agent_ids = {c.assignedToId for c in chat_details if c.assignedToId}
+        agent_name_map = {}
+        if agent_ids:
+            accounts = source_session.query(Account).filter(Account.id.in_(agent_ids)).all()
+            agent_name_map = {str(a.id): a.pushName for a in accounts}
+
         result = []
         for e in evals:
+            chat_info = chat_map.get(e.chat_id, {})
+            display_name = chat_info.get('display_name', e.chat_id)
+            agent_id = chat_info.get('agent_id')
+            agent_name = agent_name_map.get(str(agent_id)) if agent_id else "Unassigned"
+
             result.append({
                 "chat_id": e.chat_id,
                 "score": e.score,
                 "reason": e.reason,
                 "improvement": e.improvement,
                 "key_messages": e.key_messages,
+                "display_name": display_name,
+                "agent_name": agent_name,
                 "created_at": e.created_at.isoformat() + "Z"
             })
         return jsonify(result)
@@ -560,7 +577,29 @@ def submit_curation():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# --- Victor Interactive Chat Route ---
+# --- Victor Interactive Chat & Domain Routes ---
+
+@app.route('/api/verify_domain', methods=['POST'])
+@token_required
+def verify_domain():
+    from backend.nexus_client import verify_domain_in_nexus
+    try:
+        data = request.json
+        domain = data.get('domain', '').strip()
+        
+        if not domain:
+            return jsonify({"error": "Domain is required"}), 400
+            
+        domain_context = verify_domain_in_nexus(domain)
+        
+        if domain_context:
+            return jsonify({"status": "success", "context": domain_context})
+        else:
+            return jsonify({"error": "No se pudo verificar el dominio o no existe en Nexus."}), 404
+            
+    except Exception as e:
+        print(f"Verify Domain Route Error: {e}")
+        return jsonify({"error": "Internal domain verification error"}), 500
 
 @app.route('/api/victor_chat', methods=['POST'])
 @token_required
@@ -569,13 +608,14 @@ def chat_with_victor():
     try:
         data = request.json
         query = data.get('message', '')
-        history = data.get('history', []) # Format: [{"role": "user"|"assistant", "content": "..."}]
+        history = data.get('history', [])
+        domain_context = data.get('domain_context', None)
         
         if not query:
              return jsonify({"error": "Message is required"}), 400
              
         client = AIClient()
-        response_text = client.chat_as_victor(query, history)
+        response_text = client.chat_as_victor(query, history, domain_context)
         
         return jsonify({"response": response_text})
     except Exception as e:

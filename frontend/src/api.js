@@ -83,7 +83,7 @@ export async function getAvailableModels() {
     return response.json();
 }
 
-export async function sendVictorMessage(query, history) {
+export async function sendVictorMessage(query, history, domainContext = null) {
     const token = getToken();
     const response = await fetch(`${GATEWAY_URL}/victor_chat`, {
         method: 'POST',
@@ -91,9 +91,28 @@ export async function sendVictorMessage(query, history) {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ message: query, history })
+        body: JSON.stringify({ message: query, history, domain_context: domainContext })
     });
     if (!response.ok) throw new Error('Failed to communicate with Victor');
     return response.json();
+}
+
+export async function verifyDomain(domain) {
+    const token = getToken();
+    const response = await fetch(`${GATEWAY_URL}/verify_domain`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ domain })
+    });
+
+    // Attempt to parse JSON even if status is not OK, to read the error message
+    const data = await response.json();
+    if (!response.ok) {
+        throw new Error(data.error || 'Failed to verify domain');
+    }
+    return data;
 }
 
