@@ -710,10 +710,12 @@ def handle_active_config():
         
         if request.method == 'GET':
             if not active:
-                return jsonify({"active_prompt_id": None, "active_manual_id": None})
+                return jsonify({"active_prompt_id": None, "active_manual_id": None, "victor_prompt_id": None, "victor_manual_id": None})
             return jsonify({
                 "active_prompt_id": active.active_prompt_id,
-                "active_manual_id": active.active_manual_id
+                "active_manual_id": active.active_manual_id,
+                "victor_prompt_id": active.victor_prompt_id,
+                "victor_manual_id": active.victor_manual_id
             })
             
         elif request.method == 'PUT':
@@ -721,11 +723,19 @@ def handle_active_config():
             update_data = ActiveConfigUpdate(**data)
             
             if not active:
-                active = ActiveConfig(id=1, active_prompt_id=update_data.active_prompt_id, active_manual_id=update_data.active_manual_id)
+                active = ActiveConfig(
+                    id=1, 
+                    active_prompt_id=update_data.active_prompt_id, 
+                    active_manual_id=update_data.active_manual_id,
+                    victor_prompt_id=update_data.victor_prompt_id,
+                    victor_manual_id=update_data.victor_manual_id
+                )
                 session.add(active)
             else:
                 active.active_prompt_id = update_data.active_prompt_id
                 active.active_manual_id = update_data.active_manual_id
+                active.victor_prompt_id = update_data.victor_prompt_id
+                active.victor_manual_id = update_data.victor_manual_id
                 
             session.commit()
             return jsonify({"status": "success"}), 200

@@ -47,7 +47,11 @@ class ConfigItemResponse(BaseModel):
 class ActiveConfigUpdate(BaseModel):
     active_prompt_id: Optional[int]
     active_manual_id: Optional[int]
+    victor_prompt_id: Optional[int]
+    victor_manual_id: Optional[int]
 
 class ActiveConfigResponse(BaseModel):
     active_prompt_id: Optional[int]
     active_manual_id: Optional[int]
+    victor_prompt_id: Optional[int]
+    victor_manual_id: Optional[int]

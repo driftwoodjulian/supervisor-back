@@ -72,10 +72,21 @@ class Orchestrator:
                              role = "user"
                          # else remain agent
 
+                    content = msg.text if msg.text is not None else ""
+                    
+                    # Fetch Attachment if it exists to support Multimodal/Vision
+                    if hasattr(msg, 'attachmentId') and msg.attachmentId:
+                        from backend.models import Attachment
+                        try:
+                            att = source_session.query(Attachment).filter(Attachment.id == msg.attachmentId).first()
+                            if att and att.path:
+                                content += f"\n[IMAGE_REF: {att.path}]"
+                        except Exception as e:
+                            print(f"Warning: Failed to fetch attachment path for msg {msg.id}: {e}")
                     
                     history.append({
                         "role": role,
-                        "content": msg.text if msg.text is not None else "",
+                        "content": content,
                         "timestamp": msg.createdAt.isoformat() if msg.createdAt else None,
                         "author": author_data 
                     })

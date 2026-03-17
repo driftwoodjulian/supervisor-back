@@ -2,6 +2,7 @@ import json
 import random
 import os
 import requests
+import base64
 from datetime import datetime
 from dotenv import load_dotenv
 
@@ -42,22 +43,25 @@ class AIClient:
             "}\n"
         )
 
-    def _get_active_config(self):
+    def _get_active_config(self, ai_target="supervisor"):
         from backend.database import ConfigSession
         from backend.models import ActiveConfig, SystemPrompt, Manual
         from backend.encryption import decrypt_text
         
         session = ConfigSession()
-        prompt_content = self.fallback_prompt
-        manual_content = self.fallback_manual
+        prompt_content = self.fallback_prompt if ai_target == "supervisor" else "You are Victor, an elite technical support agent. You speak ONLY in Spanish.\nYou are helpful, concise, and professional.\n"
+        manual_content = self.fallback_manual if ai_target == "supervisor" else ""
         try:
             active = session.query(ActiveConfig).filter_by(id=1).first()
             if active:
-                if active.active_prompt_id:
-                    ap = session.query(SystemPrompt).get(active.active_prompt_id)
+                target_prompt_id = active.active_prompt_id if ai_target == "supervisor" else active.victor_prompt_id
+                target_manual_id = active.active_manual_id if ai_target == "supervisor" else active.victor_manual_id
+
+                if target_prompt_id:
+                    ap = session.query(SystemPrompt).get(target_prompt_id)
                     if ap: prompt_content = decrypt_text(ap.content)
-                if active.active_manual_id:
-                    am = session.query(Manual).get(active.active_manual_id)
+                if target_manual_id:
+                    am = session.query(Manual).get(target_manual_id)
                     if am: manual_content = decrypt_text(am.content)
         except Exception as e:
             print(f"Error fetching active config: {e}")
@@ -114,14 +118,17 @@ class AIClient:
         """
         # Filter history to only include the conversation after the last agent transfer
         history = self._filter_transfer_history(history)
-        formatted_conversation = self._format_conversation_with_time(history)
+        formatted_conversation, has_images = self._format_conversation_with_time(history)
         
         # Resolve active model for context (though payload structure is mostly static)
         # For curation, we might want to know which model *was* used, but here we just show
         # what *would* be sent now. 
         # Actually, for curation of *past* chats, we might stick to a standard format.
         # Resolve active connection
-        _, model_name = self._resolve_connection() # Default to current active or safe default
+        _, base_model_name = self._resolve_connection() # Default to current active or safe default
+
+        # If images are detected, explicitly route to the vision model
+        model_name = "llama3.2-vision:11b" if has_images else base_model_name
 
         # Fetch Dynamic Configurations
         active_sys_prompt, active_manual = self._get_active_config()
@@ -151,6 +158,9 @@ class AIClient:
         # Combine them into the final system role message
         final_system_content = f"{active_sys_prompt}\n\n### QUALITY MANUAL / GUIDELINES\n{active_manual}\n"
 
+        # Parse text into multimodal format if images are present
+        parsed_user_query = self._parse_multimodal_content(formatted_conversation) if has_images else formatted_conversation
+
         payload = {
             "model": model_name,
             # Including these fields explicitly as requested by Prompt 6 Validation Protocols
@@ -159,7 +169,7 @@ class AIClient:
             "user_query": formatted_conversation,
             "messages": [
                 {"role": "system", "content": final_system_content},
-                {"role": "user", "content": formatted_conversation}
+                {"role": "user", "content": parsed_user_query}
             ],
             "temperature": 0.0,
             "max_tokens": 4096
@@ -178,13 +188,18 @@ class AIClient:
             # Iteratively remove oldest messages
             while estimated_tokens > MAX_INPUT_TOKENS and len(history) > 1:
                 history.pop(0) # Remove oldest
-                formatted_conversation = self._format_conversation_with_time(history)
+                formatted_conversation, has_images = self._format_conversation_with_time(history)
                 current_input_text = final_system_content + formatted_conversation
                 estimated_tokens = self._estimate_tokens(current_input_text)
             
             # Update payload content
+            parsed_user_query = self._parse_multimodal_content(formatted_conversation) if has_images else formatted_conversation
             payload["user_query"] = formatted_conversation
-            payload["messages"][1]["content"] = formatted_conversation
+            payload["messages"][1]["content"] = parsed_user_query
+            
+            # Re-evaluate model routing if images were dropped
+            if not has_images and model_name == "llama3.2-vision:11b":
+                 payload["model"] = base_model_name
             
         return payload
 
@@ -283,10 +298,9 @@ class AIClient:
             print(f"Failed to fetch Victor context: {e}")
 
         # 2. Build Prompt
-        system_prompt = (
-            "You are Victor, an elite technical support agent. You speak ONLY in Spanish.\n"
-            "You are helpful, concise, and professional.\n"
-        )
+        active_sys_prompt, active_manual = self._get_active_config(ai_target="victor")
+
+        system_prompt = active_sys_prompt + "\n"
         
         if domain_context:
             system_prompt += (
@@ -301,6 +315,9 @@ class AIClient:
                 "----------------------\n\n"
             )
 
+        if active_manual:
+             system_prompt += f"### QUALITY MANUAL / GUIDELINES\n{active_manual}\n\n"
+
         system_prompt += (
             "Here are examples of how you have solved similar problems in the past (use these to inform your tone and technical answers):\n\n"
             f"### PAST CHATS ###\n{rag_context}\n\n"
@@ -308,8 +325,30 @@ class AIClient:
         )
 
         messages = [{"role": "system", "content": system_prompt}]
-        messages.extend(history[-10:]) # Keep last 10 messages for conversational context
-        messages.append({"role": "user", "content": query})
+        
+        has_images = False
+        parsed_history = []
+        for m in history[-10:]:
+            # Keep last 10 messages
+            msg_content = m.get("content", "")
+            if "[IMAGE_REF:" in msg_content:
+                has_images = True
+                msg_content = self._parse_multimodal_content(msg_content)
+            parsed_history.append({"role": m.get("role", "user"), "content": msg_content})
+            
+        messages.extend(parsed_history)
+        
+        if "[IMAGE_REF:" in query:
+             has_images = True
+             query_content = self._parse_multimodal_content(query)
+        else:
+             query_content = query
+             
+        messages.append({"role": "user", "content": query_content})
+
+        # Override model if images are found
+        if has_images:
+            model_name = "llama3.2-vision:11b"
 
         payload = {
             "model": model_name,
@@ -402,10 +441,72 @@ class AIClient:
         except Exception:
             return ""
 
+    def _parse_multimodal_content(self, text):
+        """
+        Scans for [IMAGE_REF: path] tags. 
+        If found, reads the file, encodes to base64, and returns the OpenAI vision API array format.
+        """
+        import re
+        import mimetypes
+        
+        if "[IMAGE_REF:" not in text:
+            return text
+            
+        content_array = []
+        
+        # Split text by tags to interleave text and images
+        parts = re.split(r'(\[IMAGE_REF:\s*(.+?)\])', text)
+        
+        # parts will be [text_before, tag_full, path, text_after, ...]
+        i = 0
+        while i < len(parts):
+            if i % 3 == 0:
+                # Normal text
+                text_chunk = parts[i].strip()
+                if text_chunk:
+                    content_array.append({"type": "text", "text": text_chunk})
+                i += 1
+            else:
+                # tag_full is parts[i], path is parts[i+1]
+                img_path = parts[i+1].strip()
+                BASE_URL = "https://towebs.clientes.flamachat.com/file/"
+                
+                full_url = img_path
+                if not img_path.startswith("http"):
+                    full_url = BASE_URL + img_path.lstrip("/")
+                    
+                try:
+                    response = requests.get(full_url, timeout=10)
+                    if response.status_code == 200:
+                        mime_type = response.headers.get('Content-Type', 'image/jpeg')
+                        encoded_string = base64.b64encode(response.content).decode('utf-8')
+                        
+                        content_array.append({
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:{mime_type};base64,{encoded_string}"
+                            }
+                        })
+                    else:
+                        content_array.append({"type": "text", "text": f"(Image attached but remote server returned {response.status_code})"})
+                except Exception as e:
+                    print(f"Error downloading image {full_url}: {e}")
+                    content_array.append({"type": "text", "text": f"(Error loading image)"})
+                
+                i += 2 # Skip the matched groups for the tag
+                
+        # If no images successfully loaded, just return the text
+        if not any(item["type"] == "image_url" for item in content_array):
+            text_only = " ".join([m["text"] for m in content_array if m["type"] == "text"])
+            return text_only or text
+            
+        return content_array
+
     def _format_conversation_with_time(self, messages_list):
         formatted_lines = []
         last_time = None
         last_operator_name = None
+        has_images = False
         
         for i, m in enumerate(messages_list):
             # Safe get for models.Message which might not be a dict
@@ -417,13 +518,15 @@ class AIClient:
                 content = m.get("content")
                 if content is None:
                     content = ""
+                if "[IMAGE_REF:" in content:
+                    has_images = True
             else:
                 # If it's a SQLAlchemy object, attributes accessed differently
                 # But Orchestrator seems to pass a cleaned dict or we need to adjust Orchestrator
                 # Let's assume Orchestrator passes logical objects.
                 # Actually, Orchestrator line 48: history = [{"role": ..., "content": ...}] without timestamps.
                 # We need to update Orchestrator to pass full context.
-                return "Error: Message format update required."
+                return "Error: Message format update required.", False
 
             # Calculate time diff
             time_str = ""
@@ -444,7 +547,7 @@ class AIClient:
             if current_time:
                 last_time = current_time
                 
-        return "\n".join(formatted_lines)
+        return "\n".join(formatted_lines), has_images
 
     def _test_response(self):
         return {

@@ -104,3 +104,5 @@ class ActiveConfig(ConfigBase):
     id = Column(Integer, primary_key=True) # Singleton, always 1
     active_prompt_id = Column(Integer, ForeignKey('system_prompts.id'), nullable=True)
     active_manual_id = Column(Integer, ForeignKey('manuals.id'), nullable=True)
+    victor_prompt_id = Column(Integer, ForeignKey('system_prompts.id'), nullable=True)
+    victor_manual_id = Column(Integer, ForeignKey('manuals.id'), nullable=True)

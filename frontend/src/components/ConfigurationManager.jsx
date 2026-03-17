@@ -5,7 +5,12 @@ import { getToken } from '../auth';
 const ConfigurationManager = ({ onBack }) => {
     const [prompts, setPrompts] = useState([]);
     const [manuals, setManuals] = useState([]);
-    const [activeConfig, setActiveConfig] = useState({ active_prompt_id: null, active_manual_id: null });
+    const [activeConfig, setActiveConfig] = useState({
+        active_prompt_id: null,
+        active_manual_id: null,
+        victor_prompt_id: null,
+        victor_manual_id: null
+    });
 
     // Modal State
     const [showModal, setShowModal] = useState(false);
@@ -70,10 +75,16 @@ const ConfigurationManager = ({ onBack }) => {
         }
     };
 
-    const handleSetActive = async (type, id) => {
+    const handleSetActive = async (type, id, aiTarget = 'supervisor') => {
         const payload = { ...activeConfig };
-        if (type === 'prompt') payload.active_prompt_id = id;
-        if (type === 'manual') payload.active_manual_id = id;
+
+        if (aiTarget === 'supervisor') {
+            if (type === 'prompt') payload.active_prompt_id = id;
+            if (type === 'manual') payload.active_manual_id = id;
+        } else if (aiTarget === 'victor') {
+            if (type === 'prompt') payload.victor_prompt_id = id;
+            if (type === 'manual') payload.victor_manual_id = id;
+        }
 
         setSaveActiveStatus('Saving...');
         try {
@@ -121,14 +132,26 @@ const ConfigurationManager = ({ onBack }) => {
                                 <ListGroup.Item key={p.id} style={{ backgroundColor: '#000', color: '#00ff41', borderBottom: '1px solid #003300' }}>
                                     <div className="d-flex justify-content-between align-items-start mb-2">
                                         <div className="fw-bold" style={{ fontFamily: "'Fira Code', monospace" }}>{p.title}</div>
-                                        <Button
-                                            variant={activeConfig.active_prompt_id === p.id ? "primary" : "outline-success"}
-                                            size="sm"
-                                            style={activeConfig.active_prompt_id === p.id ? { backgroundColor: '#00ff41', color: '#000', fontWeight: 'bold' } : {}}
-                                            onClick={() => handleSetActive('prompt', p.id)}
-                                        >
-                                            {activeConfig.active_prompt_id === p.id ? "ACTIVE" : "SET ACTIVE"}
-                                        </Button>
+                                        <div className="d-flex gap-2">
+                                            <Button
+                                                variant={activeConfig.active_prompt_id === p.id ? "primary" : "outline-success"}
+                                                size="sm"
+                                                style={activeConfig.active_prompt_id === p.id ? { backgroundColor: '#00ff41', color: '#000', fontWeight: 'bold' } : {}}
+                                                onClick={() => handleSetActive('prompt', p.id, 'supervisor')}
+                                                title="Set as Supervisor AI Prompt"
+                                            >
+                                                {activeConfig.active_prompt_id === p.id ? "Sup: ACTIVE" : "Sup: SET"}
+                                            </Button>
+                                            <Button
+                                                variant={activeConfig.victor_prompt_id === p.id ? "warning" : "outline-warning"}
+                                                size="sm"
+                                                style={activeConfig.victor_prompt_id === p.id ? { backgroundColor: '#FF8C00', color: '#000', fontWeight: 'bold' } : {}}
+                                                onClick={() => handleSetActive('prompt', p.id, 'victor')}
+                                                title="Set as Victor AI Prompt"
+                                            >
+                                                {activeConfig.victor_prompt_id === p.id ? "Vic: ACTIVE" : "Vic: SET"}
+                                            </Button>
+                                        </div>
                                     </div>
                                     <div style={{ fontSize: '0.9rem', color: '#00ff41', maxHeight: '400px', overflowY: 'auto', whiteSpace: 'pre-wrap', backgroundColor: '#000500', border: '1px solid #003300' }} className="p-3 rounded">
                                         {p.content}
@@ -153,14 +176,26 @@ const ConfigurationManager = ({ onBack }) => {
                                 <ListGroup.Item key={m.id} style={{ backgroundColor: '#000', color: '#00ff41', borderBottom: '1px solid #003300' }}>
                                     <div className="d-flex justify-content-between align-items-start mb-2">
                                         <div className="fw-bold" style={{ fontFamily: "'Fira Code', monospace" }}>{m.title}</div>
-                                        <Button
-                                            variant={activeConfig.active_manual_id === m.id ? "primary" : "outline-success"}
-                                            size="sm"
-                                            style={activeConfig.active_manual_id === m.id ? { backgroundColor: '#00ff41', color: '#000', fontWeight: 'bold' } : {}}
-                                            onClick={() => handleSetActive('manual', m.id)}
-                                        >
-                                            {activeConfig.active_manual_id === m.id ? "ACTIVE" : "SET ACTIVE"}
-                                        </Button>
+                                        <div className="d-flex gap-2">
+                                            <Button
+                                                variant={activeConfig.active_manual_id === m.id ? "primary" : "outline-success"}
+                                                size="sm"
+                                                style={activeConfig.active_manual_id === m.id ? { backgroundColor: '#00ff41', color: '#000', fontWeight: 'bold' } : {}}
+                                                onClick={() => handleSetActive('manual', m.id, 'supervisor')}
+                                                title="Set as Supervisor AI Manual"
+                                            >
+                                                {activeConfig.active_manual_id === m.id ? "Sup: ACTIVE" : "Sup: SET"}
+                                            </Button>
+                                            <Button
+                                                variant={activeConfig.victor_manual_id === m.id ? "warning" : "outline-warning"}
+                                                size="sm"
+                                                style={activeConfig.victor_manual_id === m.id ? { backgroundColor: '#FF8C00', color: '#000', fontWeight: 'bold' } : {}}
+                                                onClick={() => handleSetActive('manual', m.id, 'victor')}
+                                                title="Set as Victor AI Manual"
+                                            >
+                                                {activeConfig.victor_manual_id === m.id ? "Vic: ACTIVE" : "Vic: SET"}
+                                            </Button>
+                                        </div>
                                     </div>
                                     <div style={{ fontSize: '0.9rem', color: '#00ff41', maxHeight: '400px', overflowY: 'auto', whiteSpace: 'pre-wrap', backgroundColor: '#000500', border: '1px solid #003300' }} className="p-3 rounded mt-2">
                                         {m.content}
